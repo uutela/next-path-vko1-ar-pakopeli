@@ -694,3 +694,51 @@ exit 0
 The `INBOX.md` line is marked resolved rather than deleted, so the record shows
 the mechanism working end to end: noticed during a cycle, filed as one line,
 not detoured into, resolved by a decision.
+
+### 46 — same prompt, puzzle.md
+
+> jatka
+
+**puzzle — AC1 to AC12, plus the whitespace row from the testing strategy**
+
+RED. All thirteen tests written against three stubs that throw. Every failure
+was behavioural — no import, path or fixture error anywhere:
+
+```
+× AC1: the lowest draw produces 1 + 1                 Error: generatePuzzle is not implemented
+× AC2: the highest draw produces 9 + 9                Error: generatePuzzle is not implemented
+× AC3: a mid-range draw maps to the documented operands
+× AC4: the generator draws exactly twice
+× AC5: the answer is always the sum, and operands stay in 1..9
+× AC6: the correct answer is accepted                 Error: checkAnswer is not implemented
+× AC7: a wrong answer is rejected
+× AC8: a leading zero is still the same number
+× AC9: empty input is rejected, not an error          AssertionError: expected [Function] to not throw
+× AC6: surrounding whitespace is ignored
+× AC10: a digit is appended to empty input            Error: appendDigit is not implemented
+× AC11: a second digit is appended
+× AC12: a third digit is ignored
+Failed Tests 13
+```
+
+Unlike proximity, nothing passed early here: no part of this module existed,
+so every criterion had a genuine red.
+
+GREEN. `drawOperand` extracted so the 1..9 span is written once, `checkAnswer`
+as a single `parseInt` comparison, `appendDigit` guarded by a named length
+constant.
+
+```
+Test Files  2 passed (2)
+     Tests  24 passed (24)
+exit 0
+```
+
+REFACTOR: nothing. Constants are named, the shared draw is already extracted,
+and there is no duplication between the three functions.
+
+**Noticed, not fixed** — one line in `INBOX.md`. `parseInt` stops at the first
+non-digit, so `"7abc"`, `"7.9"`, `"+7"` and `"7e0"` all read as 7. Probed by
+running each input rather than assumed. No criterion covers them and the
+keypad cannot produce them, since `appendDigit` only ever appends `0`-`9`, so
+this is recorded rather than hardened.
