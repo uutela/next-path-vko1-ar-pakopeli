@@ -16,9 +16,5 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
-    // Remove this once the first real test lands in step 6: it exists so the
-    // harness can be verified green before any test is written, and it would
-    // otherwise hide a broken include glob.
-    passWithNoTests: true,
   },
 });

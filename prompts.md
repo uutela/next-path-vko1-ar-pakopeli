@@ -508,3 +508,56 @@ requires the container to be present with a resolved style declaring `flex: 1`.
 
 Both specs record what the tests deliberately do not prove, so the field visit
 has a written list rather than a memory.
+
+---
+
+## Step 6 — TDD, one criterion at a time
+
+The prompt below is repeated for each acceptance criterion; only the AC
+number and the spec file change. It is recorded once, with a log entry per
+cycle beneath it.
+
+### 42
+> Run the `tdd` workflow from @AGENTS.md for AC1 in
+> specs/features/proximity.md.
+>
+> RED first: write the failing test for this AC only. The test name states
+> the AC. Run it and paste the real output. Confirm it fails because the
+> behaviour is missing — not because of an import, path or fixture.
+>
+> Only then GREEN: the smallest change that passes it. Run ALL tests and
+> show the summary. Then REFACTOR with the tests green.
+>
+> Stop after this AC. Do not start the next one.
+
+**proximity AC1 — identical coordinates are zero metres apart**
+
+RED. `distanceMeters` was created as a stub that throws, so that the failure
+would be behavioural rather than an unresolved import — the prompt asks for
+exactly that distinction:
+
+```
+FAIL  src/domain/distance.test.ts > distanceMeters > AC1: identical coordinates are zero metres apart
+Error: distanceMeters is not implemented
+ ❯ distanceMeters src/domain/distance.ts:8:9
+Tests  1 failed (1)
+```
+
+GREEN with `return 0`. This is deliberately degenerate and it is the point of
+the discipline: AC1 alone does not justify the haversine formula, and writing
+it here would make the RED phase of AC2 and AC3 fake, since both would pass
+the moment they were written. The comment in the file says so, so the next
+cycle does not read it as an oversight.
+
+```
+Test Files  1 passed (1)
+     Tests  1 passed (1)
+exit 0
+```
+
+REFACTOR: nothing done. One test, a three-line function, no duplication, and
+the names come from the spec. Inventing a change here would be motion, not
+refactoring.
+
+`passWithNoTests: true` removed from `vitest.config.mts`, as planned in step 5
+— the first real test now exists, so the guard would only hide a broken glob.
