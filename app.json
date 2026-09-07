@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "AR Pakopeli",
+    "slug": "ar-pakopeli",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "fi.uutela.arpakopeli",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Kameraa käytetään tehtävän avaamiseen pisteessä.",
+        "NSLocationWhenInUseUsageDescription": "Sijaintia käytetään pisteen löytämiseen kartalta."
+      }
+    },
+    "android": {
+      "package": "fi.uutela.arpakopeli",
+      "permissions": ["CAMERA", "ACCESS_FINE_LOCATION"]
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

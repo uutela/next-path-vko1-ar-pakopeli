@@ -199,3 +199,58 @@ are at least 56 points apart. The risk section records that key size was moved
 from the field onto the desk.
 
 Specs now hold 68 acceptance criteria across six files.
+
+---
+
+## Step 5 — architecture, UI/UX, tech stack, and the scaffold
+
+> Write architecture, ui/ux and tech stack specs into specs/. Focus on
+> simplicity and being able to quickly develop an MVP. Stay inside the
+> PRD non-goals. One page each.
+>
+> Then scaffold the project according to the tech stack spec: install
+> what is needed, make the commands in @AGENTS.md real, and run `npm test`
+> with no tests yet. It must pass green. Show the output.
+
+The course warned that this is the step where a model tries to bring the
+non-goals back. Named in advance as most at risk: a backend "for syncing", a
+PIN "to protect the admin view", crash reporting "as good practice", and
+persisting progress "because it is trivial". None were added; `tech-stack.md`
+lists them under **Deliberately not used** with the reason.
+
+The opposite trap also applies here and is easier to miss. "Focus on
+simplicity" can read as licence to reverse a decision that was deliberately
+*not* the simplest — world-anchored AR. It stays, per the PRD.
+
+### Scaffold
+
+Expo SDK 57, React Native 0.86, React 19, TypeScript 7 strict, Vitest 5.
+MapLibre and Viro are deliberately not installed yet: both need a custom dev
+build and a config plugin, and installing them before any code uses them would
+let a native install failure block the harness.
+
+Two things worth recording:
+
+- `"type": "module"` in `package.json` breaks Metro's resolution, but without
+  it Vitest warns that its ESM config is loaded as CommonJS. Resolved by
+  dropping the field and naming the config `vitest.config.mts`.
+- `passWithNoTests: true` is set so the harness can be verified green before
+  any test exists. It must be removed once the first real test lands in step
+  6, or a broken include glob would pass silently.
+
+### Command output
+
+```
+$ npm test
+ RUN  v5.0.0 /Users/null/Projects/next-path-vko1-ar-pakopeli
+No test files found, exiting with code 0
+include: src/**/*.test.ts, src/**/*.test.tsx
+exit 0
+
+$ npx tsc --noEmit
+exit 0
+
+$ npm start
+Starting Metro Bundler / Waiting on http://localhost:8099
+GET /status -> HTTP 200, packager-status:running
+```
