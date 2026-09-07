@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Secrets
+.env
+.env.*
+
+# Expo / React Native
+.expo/
+ios/Pods/
+android/.gradle/
+android/app/build/
+
+# Build output
+dist/
+build/
+
+# Misc
+*.log
+.DS_Store
