@@ -785,3 +785,46 @@ exit 0
 Behaviour confirmed by running every input, not by reasoning about it:
 `"7"`, `"07"`, `"7 "` and `"  7  "` accepted; `""`, `"7abc"`, `"7.9"`, `"+7"`,
 `"7e0"` and `"0x7"` rejected.
+
+### 48 — same prompt, game-state.md
+
+> jatka
+
+**game-state — AC1 to AC15, plus four rows from the testing strategy**
+
+RED. Nineteen tests against one stub. Every failure was
+`transition is not implemented`; the 28 tests already passing stayed green.
+
+```
+× AC1 … AC15                Error: transition is not implemented
+Test Files  1 failed | 2 passed (3)
+     Tests  19 failed | 28 passed (47)
+```
+
+GREEN. `transition` reads as the spec does: `RESET` short-circuits from any
+state, then a switch over the four states. `nearestPointInRange` implements
+AC13's tie-break by distance rather than array order. The `PUZZLE` branch
+returns `state` itself — not a copy — whenever nothing changes, which is what
+AC5, AC9 and AC15's second row ask for and which also keeps React from
+re-rendering on a no-op.
+
+```
+Test Files  3 passed (3)
+     Tests  47 passed (47)
+exit 0
+```
+
+REFACTOR — the first cycle where there was something to do. `scriptedRng` had
+been written twice, once in each test file, and it has a subtle contract:
+it repeats its last value forever rather than running out. Two definitions
+means two places to get that wrong. Extracted to `src/testing/scriptedRng.ts`,
+which sits outside the `*.test.ts` glob so it is a helper rather than a suite.
+`specs/architecture.md` gained the directory, since a layout diagram that does
+not match the tree is worse than none. Tests stayed green through the move.
+
+Three of the criteria here are about *nothing happening*: a puzzle stays open
+when the player drifts out of range (AC5), a solved point stays solved
+(AC10), and an event that does not apply is ignored rather than throwing
+(AC12). Those are the ones that would show up on a phone as a panel that
+flickers shut mid-answer, and they are the reason the state machine is a pure
+function rather than logic spread across screens.
