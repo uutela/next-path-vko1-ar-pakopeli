@@ -992,3 +992,51 @@ captured and the typed input never updates on screen. No criterion covers the
 panel inside the AR scene, so nothing catches it.
 
 All six specs are green. 84 tests, 10 files.
+
+### 52
+*In reply to: what to do about the INBOX line on ArScreen's scene closure*
+
+> tee
+
+→ The line had been written with an "if", so the first step was to find out
+whether it was a defect at all. It was — confirmed from
+`ViroARSceneNavigator`'s own source:
+
+```js
+constructor(props) {
+  const scene = { sceneClass: this.props.initialScene, ... };   // captured once
+```
+```js
+// update the arSceneNavigator with the latest given props on every render
+this.arSceneNavigator.viroAppProps = this.props.viroAppProps;
+```
+
+`initialScene` is read in the constructor and never again; `viroAppProps` is
+the channel Viro itself refreshes. A scene passed as a closure is frozen at
+mount, so the player would press keys, the state machine would update, and the
+anchored panel would show the input it had when the camera opened. The core
+interaction, silently dead.
+
+Nothing caught it because all fifteen panel criteria render `PuzzlePanel`
+directly. The defect lives in the seam none of them cross.
+
+**Spec, then test, then fix.** `ar-panel.md` gained AC16. The test's stand-in
+had to reproduce *both* Viro behaviours — capture the scene once, refresh
+`viroAppProps` every render — because a stand-in that simply called the scene
+function again would have made the frozen closure look fine. A mock is a
+measuring instrument, and one built to agree with the code measures nothing.
+
+```
+RED    AssertionError: expected '' to be '12'
+GREEN  Tests  85 passed (85)
+```
+
+`PuzzleScene` is now a module-level component reading
+`sceneNavigator.viroAppProps`. One narrowed cast was needed: Viro declares
+`scene` as `() => JSX.Element` while its renderer calls it with
+`sceneNavigator` and `arSceneNavigator`, so the declared type understates what
+it passes. The cast sits on that one line rather than weakening
+`PuzzleScene`'s own props, and no `any` is involved.
+
+Verified by putting the closure back: AC16 goes red alone, and nothing else
+does. Restored.

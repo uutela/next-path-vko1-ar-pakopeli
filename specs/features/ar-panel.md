@@ -118,6 +118,24 @@ and at the intended 0.6 m it is 5.7 degrees. That is several times the angular
 size of a 48 dp target on a phone held at arm's length, which is the right
 margin for a panel aimed at with a whole arm rather than a thumb.
 
+### AC16: The panel inside the AR scene sees the current state
+**Given** `ArScreen` rendered with camera permission `granted` and `PUZZLE_STATE` with `input: ""`
+**When** it re-renders with `input: "12"`
+**Then** the panel's input display reads `12`
+
+Every other panel criterion renders `PuzzlePanel` directly, so none of them
+cross the AR navigator — and that seam is where the state can be lost.
+`ViroARSceneNavigator` stores `initialScene` in its **constructor** and never
+re-reads it, while its own comment marks `viroAppProps` as the channel
+"updated with the latest given props on every render". A scene passed as a
+closure is therefore frozen at mount: the player would press keys, the state
+machine would update, and the anchored panel would show the input it had when
+the camera opened.
+
+Testing this needs a stand-in that reproduces both behaviours — capture the
+scene once, refresh `viroAppProps` every render. A stand-in that simply calls
+the scene function again each time would hide the defect entirely.
+
 ## Files to Modify
 | File | Change |
 |---|---|
@@ -171,6 +189,7 @@ margin for a panel aimed at with a whole arm rather than a thumb.
 | `PuzzlePanel` | error case | wrong answer submitted | state returns `input: ""` | puzzle text unchanged, display empty, no congratulation (AC10) |
 | `ArScreen` | error case | camera permission `denied` | rendered | text `Kamera tarvitaan tehtävän avaamiseen.`, no keys (AC11) |
 | `ArScreen` | error case | camera permission `undetermined` | rendered | permission is requested exactly once |
+| `ArScreen` | edge case | permission `granted`, input `""` then `"12"` | re-rendered | panel input display reads `12` (AC16) |
 | `PuzzlePanel` | happy path | `SOLVED` | `Aloita alusta` pressed | one `RESET` (AC12) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` with `input: "12"` | key `C` pressed | one `CLEAR`, display empty (AC13) |
 | `PuzzlePanel` | edge case | `PUZZLE_STATE` with `input: ""` | key `C` pressed | one `CLEAR`, display still empty, no throw (AC14) |
