@@ -25,7 +25,8 @@
       "bundler": "metro"
     },
     "plugins": [
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      "expo-audio"
     ]
   }
 }

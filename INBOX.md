@@ -26,3 +26,9 @@ One line per thing noticed while working. Not implemented, not detoured into.
   point. No criterion in `map-view.md` asks for centring, so it was left out
   under the smallest-implementation rule — but a map that never centres is not
   usable in the field. Needs a criterion before it is added.
+- `ArScreen` builds the AR scene as a closure — `const scene = () => <ViroARScene><PuzzlePanel …/></ViroARScene>`
+  — and Viro is given it once through `initialScene`. If Viro calls it only at
+  mount, the panel would keep the props it captured then, and the typed input
+  would never update on screen. No criterion covers the panel *inside* the AR
+  scene (every panel criterion renders `PuzzlePanel` directly), so nothing
+  catches this. Needs either a criterion or a switch to `viroAppProps`.

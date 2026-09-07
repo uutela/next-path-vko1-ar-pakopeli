@@ -25,10 +25,16 @@ The screen holds no game rules — it renders `GameState` and sends
 
 Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5, right: 2, answer: 7 }, input: "" }`.
 
-### AC1: Standing at a point offers to open the puzzle
-**Given** state `{ kind: 'NEAR', point: POINT }`
-**When** the screen is rendered
-**Then** exactly one pressable element with the text `Avaa tehtävä` is present
+### AC1: Opening the puzzle starts the camera
+**Given** the camera adapter reports permission `granted` and state `PUZZLE_STATE`
+**When** `ArScreen` is rendered
+**Then** exactly one camera preview is present
+
+This slot previously held "standing at a point offers to open the puzzle",
+which put the `Avaa tehtävä` button on this screen. That could not work: the
+AR screen appears only in `PUZZLE` and `SOLVED`, so a button rendered here
+could never be pressed in `NEAR`, the state that fires it. It now lives in
+`map-view.md` as AC8 and AC9.
 
 ### AC2: The panel states the sum in the documented format
 **Given** `PUZZLE_STATE`
@@ -95,10 +101,22 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 **When** the key labelled `C` is pressed
 **Then** a `CLEAR` event is dispatched exactly once, the input display is still empty, and nothing is thrown
 
-### AC15: Every key declares a touch target large enough to hit outdoors
+### AC15: Every key is large enough to hit at arm's length
 **Given** `PUZZLE_STATE`
-**When** the panel is rendered and each key's resolved style is read
-**Then** every one of the twelve keys has both `minWidth` and `minHeight` of at least `48`, and the keypad's row and column gap is at least `8` — which places adjacent key centres at least `56` apart
+**When** the panel is rendered and each key's style is read
+**Then** every one of the twelve keys is at least `0.06` wide and `0.06` high in Viro's units, and `PANEL_DISTANCE_METRES` is at most `0.7`
+
+Viro measures its layout in metres of world space, not in React Native points,
+even though `ViroStyle` is declared as `ViewStyle & ShadowStyleIOS` and so
+accepts `minWidth` without complaint. An earlier version of this criterion
+asked for 48 x 48 points; written against a Viro panel that would have meant
+48 metres, and the test would have passed while asserting nonsense — the worst
+kind of green.
+
+The numbers above are an angular size: 0.06 m at 0.7 m subtends 4.9 degrees,
+and at the intended 0.6 m it is 5.7 degrees. That is several times the angular
+size of a 48 dp target on a phone held at arm's length, which is the right
+margin for a panel aimed at with a whole arm rather than a thumb.
 
 ## Files to Modify
 | File | Change |
@@ -141,7 +159,7 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 ## Testing Strategy (MANDATORY)
 | Function | Case | Given | When | Then |
 |---|---|---|---|---|
-| `ArScreen` | happy path | `NEAR` | rendered | one pressable `Avaa tehtävä` (AC1) |
+| `ArScreen` | happy path | permission `granted`, `PUZZLE` | rendered | one camera preview (AC1) |
 | `PuzzlePanel` | happy path | puzzle `5 + 2` | rendered | text `5 + 2 = ?` (AC2) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` | rendered | twelve keys, `0`–`9`, `C` and `OK` (AC3) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` | key `7` pressed | one `DIGIT_PRESSED` with `"7"`, display reads `7` (AC4) |
@@ -156,7 +174,7 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 | `PuzzlePanel` | happy path | `SOLVED` | `Aloita alusta` pressed | one `RESET` (AC12) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` with `input: "12"` | key `C` pressed | one `CLEAR`, display empty (AC13) |
 | `PuzzlePanel` | edge case | `PUZZLE_STATE` with `input: ""` | key `C` pressed | one `CLEAR`, display still empty, no throw (AC14) |
-| `PuzzlePanel` | boundary | `PUZZLE_STATE` | each key's resolved style read | every key `minWidth` >= 48 and `minHeight` >= 48, keypad gap >= 8 (AC15) |
+| `PuzzlePanel` | boundary | `PUZZLE_STATE` | each key's style read | every key >= 0.06 x 0.06 Viro units, `PANEL_DISTANCE_METRES` <= 0.7 (AC15) |
 
 ## Spec Readiness checklist
 - [x] Every AC has a precise expected value — no "works correctly"
