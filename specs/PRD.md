@@ -46,8 +46,9 @@ to self-hosted tiles stays a one-line change.
 
 **Licensing.** Every dependency must be free and permissively licensed —
 MIT or BSD — with no obligation to publish source and no barrier to
-commercial use. This includes the fanfare audio, which must be CC0 or
-equivalent. This constraint outranks convenience.
+commercial use. The fanfare sidesteps the question entirely: it is
+synthesised by a script in this repo rather than sourced from anywhere, so
+the audio is our own work. This constraint outranks convenience.
 
 **Trigger.** A point activates at **20 metres**, chosen to tolerate GPS
 drift outdoors rather than to be precise.

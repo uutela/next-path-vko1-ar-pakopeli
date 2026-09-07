@@ -117,3 +117,56 @@ for other projects, which the step 2 decisions had reversed.
 Written as `specs/PRD.md`. No new decisions were introduced — the document
 only records what steps 1 and 2 settled, and states the non-goals explicitly
 so that later feature specs cannot quietly expand the scope.
+
+---
+
+## Step 4 — feature specs
+
+> Write the spec for the features of the app.
+>
+> Ground it in the research pass findings and specs/PRD.md. Write
+> specs/features/«feature».md for each feature using specs/TEMPLATE.md.
+>
+> Acceptance criteria as Given/When/Then, numbered AC1, AC2, …
+> Every one names a precise expected value or output — never "a sensible
+> message", never "works correctly".
+>
+> Then run the Spec Readiness checklist and show the result item by item.
+
+Six specs in `specs/features/`, split along the architecture: three pure
+domain features (`proximity`, `puzzle`, `game-state`), one storage feature
+(`points-store`) and two views (`map-view`, `ar-panel`). 67 acceptance
+criteria and 77 test rows.
+
+The haversine values in `proximity.md` were computed before writing, not
+estimated, so `60.1700798643` is provably 20.000000 m from the reference
+point.
+
+One question was left open in `ar-panel.md` rather than resolved silently:
+the keypad had no clear key, so a mistyped digit could only be recovered by
+spending a wrong answer.
+
+### Decision
+
+> tehdään c-näppäin
+
+The keypad is now twelve keys — `0`–`9`, `C` and `OK`. `CLEAR` was added to
+`GameEvent`; `ar-panel.md` gained AC13 and AC14, and `game-state.md` gained
+AC15, which pins that clearing keeps the same operands rather than drawing a
+fresh puzzle.
+
+### Fanfare
+
+> voisiko fanfare olla joku tietokoneellsiesti generoit wav, jonka teet?
+
+Yes, and it is the better answer: a synthesised asset has no third-party
+licence at all, rather than a permissive one that has to be verified and
+recorded. `scripts/generate-fanfare.mjs` writes `assets/fanfare.wav` from a
+score held in source — C–E–G rising, then a held C major chord, 1.45 s, mono
+44.1 kHz 16-bit PCM, no dependencies.
+
+Checked before use: peak 0.8900 with no clipped samples, DC offset 0.000001,
+and both the first and last sample exactly 0 so it neither clicks in nor out.
+
+`specs/features/ar-panel.md` and `specs/PRD.md` were updated: the fanfare is
+no longer listed as a licence risk, because it no longer is one.
