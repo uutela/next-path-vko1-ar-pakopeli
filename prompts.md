@@ -170,3 +170,32 @@ and both the first and last sample exactly 0 so it neither clicks in nor out.
 
 `specs/features/ar-panel.md` and `specs/PRD.md` were updated: the fanfare is
 no longer listed as a licence risk, because it no longer is one.
+
+### Readiness exercise: find a criterion that only promises "it works"
+
+The step 4 instructions end with a task for the human: find an acceptance
+criterion that says "correct", "sensible" or "works", and rewrite it with a
+precise, measurable value. The first search was too narrow — it looked for
+exact phrases like "works correctly" and found nothing but the checklist line
+itself. Searching for vague *promises* rather than vague *words* found three.
+
+**1. `map-view.md` AC4** — "exactly one node with that text is present and it
+is **not hidden**". A test cannot branch on "not hidden". Now: the node's
+computed `fontSize` is at least 11, its `opacity` at least 0.8, and its
+`display` is not `none`.
+
+**2. `map-view.md` AC6** — "zero markers are present, **the map itself still
+renders**". Now: the map container is present with a measured width and
+height both greater than 0.
+
+**3. `ar-panel.md`** — the best find, because it was not a weak AC but a
+missing one. "Whether the keys are large enough to hit at arm's length" sat in
+the Risk section as a field-only concern, which in practice means nobody
+checks it until the demo — and a touch target too small to hit outdoors, with
+a shaking hand in bright sun, is exactly how an AR demo fails. "Large enough"
+also has a settled measurable value. It is now AC15: every one of the twelve
+keys has a touch target of at least 48 x 48 points, and adjacent key centres
+are at least 56 points apart. The risk section records that key size was moved
+from the field onto the desk.
+
+Specs now hold 68 acceptance criteria across six files.

@@ -40,7 +40,7 @@ style URL from `src/config/map.ts`; neither declares its own.
 ### AC4: The attribution is visible on the map
 **Given** the map view rendered with one point
 **When** the rendered output is queried for the text `© OpenMapTiles Data from OpenStreetMap`
-**Then** exactly one node with that text is present and it is not hidden
+**Then** exactly one text node reads `© OpenMapTiles Data from OpenStreetMap`, its computed `fontSize` is at least `11`, its computed `opacity` is at least `0.8`, and its `display` is not `none`
 
 ### AC5: One marker is rendered per point
 **Given** the map view rendered with `points = [SEED_A, SEED_B]`
@@ -50,7 +50,7 @@ style URL from `src/config/map.ts`; neither declares its own.
 ### AC6: An empty point list renders a map with no markers
 **Given** the map view rendered with `points = []`
 **When** the rendered output is queried for markers
-**Then** zero markers are present, the map itself still renders, and nothing is thrown
+**Then** zero markers are present, the map container node is present with a measured width and height both greater than `0`, and nothing is thrown
 
 ### AC7: No API key is present anywhere
 **Given** the source tree
@@ -68,8 +68,9 @@ style URL from `src/config/map.ts`; neither declares its own.
 
 ## Risk
 - **What could break:** an attribution that renders off-screen or behind
-  another view still counts as missing. AC4 checks presence, not position —
-  a human has to confirm it is actually legible on the phone.
+  another view still counts as missing. AC4 now measures size, opacity and
+  display, but it cannot measure position or contrast — a human still has to
+  confirm it is legible against the map on a real phone.
 - **OpenFreeMap has no SLA.** If the tile host is down the map is blank and
   the game is unusable. AC1 exists so that switching to self-hosted tiles is
   a one-line change rather than a hunt.
@@ -86,9 +87,9 @@ style URL from `src/config/map.ts`; neither declares its own.
 | source tree | happy path | all files | searched for `tiles.openfreemap.org` | one match, in `src/config/map.ts` (AC1) |
 | source tree | happy path | both Map files | imports inspected | both import `MAP_STYLE_URL` (AC2) |
 | `MAP_ATTRIBUTION` | happy path | the config module | read | exactly `© OpenMapTiles Data from OpenStreetMap` (AC3) |
-| `Map` | happy path | one point | rendered | attribution text present exactly once (AC4) |
+| `Map` | happy path | one point | rendered | attribution once, `fontSize` >= 11, `opacity` >= 0.8, `display` not `none` (AC4) |
 | `Map` | happy path | two points | rendered | two markers at the given coordinates (AC5) |
-| `Map` | boundary | zero points | rendered | zero markers, map renders, no throw (AC6) |
+| `Map` | boundary | zero points | rendered | zero markers, container width and height both > 0, no throw (AC6) |
 | source tree | error case | all files | searched for key and token names | no matches (AC7) |
 
 ## Spec Readiness checklist

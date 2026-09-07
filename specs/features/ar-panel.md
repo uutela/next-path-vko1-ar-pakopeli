@@ -95,12 +95,17 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 **When** the key labelled `C` is pressed
 **Then** a `CLEAR` event is dispatched exactly once, the input display is still empty, and nothing is thrown
 
+### AC15: Every key is large enough to hit outdoors
+**Given** `PUZZLE_STATE`
+**When** the panel is rendered and each key's layout is measured
+**Then** every one of the twelve keys has a touch target of at least `48` x `48` points, and the centres of any two adjacent keys are at least `56` points apart
+
 ## Files to Modify
 | File | Change |
 |---|---|
 | `src/ui/ArScreen.tsx` | New. Camera, permission handling, hosts the panel |
 | `src/ui/PuzzlePanel.tsx` | New. Anchored panel: puzzle text, input display, keypad |
-| `src/ui/PuzzlePanel.test.tsx` | New. AC1–AC10 and AC12–AC14 against the rendered output |
+| `src/ui/PuzzlePanel.test.tsx` | New. AC1–AC10 and AC12–AC15 against the rendered output |
 | `src/ui/ArScreen.test.tsx` | New. AC11 with a fake camera adapter |
 | `src/adapters/audio.ts` | New. `play(asset)` behind an adapter so AC8 and AC9 are testable |
 | `scripts/generate-fanfare.mjs` | New. Synthesises the fanfare from a score in the source; no dependencies |
@@ -112,9 +117,11 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
   device, so a break here is caught before the field, but none of them prove
   the panel is *anchored* — only that it renders the right things.
 - **Field-only risks, which no AC above covers:** surface tracking in bright
-  sunlight, on grass or plain asphalt; whether the keys are large enough to
-  hit at arm's length; whether the panel is legible against a bright sky.
-  These need a visit to the demo location before the demo.
+  sunlight, on grass or plain asphalt, and whether the panel is legible
+  against a bright sky. These need a visit to the demo location before the
+  demo. Key size used to be on this list; AC15 moved it onto the desk, since
+  a target too small to hit is the failure most likely to ruin a demo and the
+  least excusable to discover outdoors.
 - **The fanfare carries no licence risk**: it is synthesised by
   `scripts/generate-fanfare.mjs`, which is in the repo, so the asset is our
   own work with no third-party terms attached. Regenerating it is one
@@ -143,6 +150,7 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 | `PuzzlePanel` | happy path | `SOLVED` | `Aloita alusta` pressed | one `RESET` (AC12) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` with `input: "12"` | key `C` pressed | one `CLEAR`, display empty (AC13) |
 | `PuzzlePanel` | edge case | `PUZZLE_STATE` with `input: ""` | key `C` pressed | one `CLEAR`, display still empty, no throw (AC14) |
+| `PuzzlePanel` | boundary | `PUZZLE_STATE` | each key measured | every key >= 48 x 48 points, adjacent centres >= 56 points apart (AC15) |
 
 ## Spec Readiness checklist
 - [x] Every AC has a precise expected value — no "works correctly"
