@@ -1,0 +1,152 @@
+# Feature: AR puzzle panel
+
+**Status:** Draft
+
+## Problem Statement
+This is the feature the whole project exists for: standing at the point, the
+player raises the phone and a panel anchored in the world shows a sum and a
+keypad. It is also the riskiest — anchored AR needs camera permission,
+surface tracking and daylight, none of which can be verified from a desk.
+Everything that *can* be decided without the device is therefore specified
+here as text and value, so field testing is left to test only what genuinely
+needs the field.
+
+## Proposed Change
+`src/ui/ArScreen.tsx` opens the camera and hosts an anchored panel rendered by
+`src/ui/PuzzlePanel.tsx`. The panel is one object: puzzle text on top, the
+keypad below, both anchored together. Pressing a key means touching the
+screen where that key appears.
+
+All text the player reads is Finnish; identifiers and comments are English.
+The screen holds no game rules — it renders `GameState` and sends
+`GameEvent`s to `transition`.
+
+## Acceptance Criteria
+
+Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5, right: 2, answer: 7 }, input: "" }`.
+
+### AC1: Standing at a point offers to open the puzzle
+**Given** state `{ kind: 'NEAR', point: POINT }`
+**When** the screen is rendered
+**Then** exactly one pressable element with the text `Avaa tehtävä` is present
+
+### AC2: The panel states the sum in the documented format
+**Given** `PUZZLE_STATE`
+**When** the panel is rendered
+**Then** exactly one text node reads `5 + 2 = ?`
+
+### AC3: The keypad has twelve keys
+**Given** `PUZZLE_STATE`
+**When** the panel is rendered
+**Then** it contains exactly twelve pressable keys, labelled `0`–`9`, `C` and `OK`
+
+### AC4: A pressed digit appears in the input display
+**Given** `PUZZLE_STATE`
+**When** the key labelled `7` is pressed
+**Then** a `DIGIT_PRESSED` event with `digit: "7"` is dispatched exactly once, and the input display reads `7`
+
+### AC5: The input display is empty when the input is empty
+**Given** `PUZZLE_STATE` with `input: ""`
+**When** the panel is rendered
+**Then** the input display node exists and its text is the empty string
+
+### AC6: Pressing OK submits
+**Given** `PUZZLE_STATE` with `input: "7"`
+**When** the key labelled `OK` is pressed
+**Then** a `SUBMIT` event is dispatched exactly once
+
+### AC7: Solving replaces the panel text with the congratulation
+**Given** state `{ kind: 'SOLVED', point: POINT }`
+**When** the panel is rendered
+**Then** exactly one text node reads `Oikein! Laatikko aukesi.`, and no node reads `5 + 2 = ?`
+
+### AC8: The fanfare plays once on solving
+**Given** the panel rendered in `PUZZLE_STATE`
+**When** the state changes to `{ kind: 'SOLVED', point: POINT }`
+**Then** the audio adapter's `play` is called exactly once with the fanfare asset
+
+### AC9: The fanfare does not replay on re-render
+**Given** the panel already rendered in the `SOLVED` state with the fanfare played
+**When** the panel re-renders with the same state
+**Then** the audio adapter's `play` has still been called exactly once in total
+
+### AC10: A wrong answer keeps the puzzle on screen
+**Given** `PUZZLE_STATE` with `input: "8"`
+**When** `OK` is pressed and the state machine returns `input: ""`
+**Then** the text node still reads `5 + 2 = ?`, the input display is empty, and no congratulation text is present
+
+### AC11: Denied camera permission explains itself and does not open the panel
+**Given** the camera adapter reports permission `denied`
+**When** the screen is rendered in `PUZZLE_STATE`
+**Then** exactly one text node reads `Kamera tarvitaan tehtävän avaamiseen.`, and no keypad key is present
+
+### AC12: The reset control returns to the map
+**Given** state `{ kind: 'SOLVED', point: POINT }`
+**When** the element with the text `Aloita alusta` is pressed
+**Then** a `RESET` event is dispatched exactly once
+
+### AC13: The clear key empties a mistyped input
+**Given** `PUZZLE_STATE` with `input: "12"`
+**When** the key labelled `C` is pressed
+**Then** a `CLEAR` event is dispatched exactly once, and the input display reads the empty string
+
+### AC14: The clear key on empty input is harmless
+**Given** `PUZZLE_STATE` with `input: ""`
+**When** the key labelled `C` is pressed
+**Then** a `CLEAR` event is dispatched exactly once, the input display is still empty, and nothing is thrown
+
+## Files to Modify
+| File | Change |
+|---|---|
+| `src/ui/ArScreen.tsx` | New. Camera, permission handling, hosts the panel |
+| `src/ui/PuzzlePanel.tsx` | New. Anchored panel: puzzle text, input display, keypad |
+| `src/ui/PuzzlePanel.test.tsx` | New. AC1–AC10 and AC12–AC14 against the rendered output |
+| `src/ui/ArScreen.test.tsx` | New. AC11 with a fake camera adapter |
+| `src/adapters/audio.ts` | New. `play(asset)` behind an adapter so AC8 and AC9 are testable |
+| `scripts/generate-fanfare.mjs` | New. Synthesises the fanfare from a score in the source; no dependencies |
+| `assets/fanfare.wav` | Generated by that script. 1.45 s, mono, 44.1 kHz, 16-bit PCM |
+
+## Risk
+- **What could break:** this screen is where the anchored panel, the camera
+  and the state machine meet. AC1–AC12 all run in a test renderer without a
+  device, so a break here is caught before the field, but none of them prove
+  the panel is *anchored* — only that it renders the right things.
+- **Field-only risks, which no AC above covers:** surface tracking in bright
+  sunlight, on grass or plain asphalt; whether the keys are large enough to
+  hit at arm's length; whether the panel is legible against a bright sky.
+  These need a visit to the demo location before the demo.
+- **The fanfare carries no licence risk**: it is synthesised by
+  `scripts/generate-fanfare.mjs`, which is in the repo, so the asset is our
+  own work with no third-party terms attached. Regenerating it is one
+  command, and changing how it sounds is editing a score in source.
+- **A generated WAV is uncompressed** — 128 KB for 1.45 s. Acceptable for one
+  asset; if more sounds are added later, this is the point to reconsider.
+- **Rollback:** delete `ArScreen.tsx` and fall back to rendering
+  `PuzzlePanel` over a plain camera preview without anchoring. This is the
+  documented cut in the PRD, and the panel and its tests survive it.
+
+## Testing Strategy (MANDATORY)
+| Function | Case | Given | When | Then |
+|---|---|---|---|---|
+| `ArScreen` | happy path | `NEAR` | rendered | one pressable `Avaa tehtävä` (AC1) |
+| `PuzzlePanel` | happy path | puzzle `5 + 2` | rendered | text `5 + 2 = ?` (AC2) |
+| `PuzzlePanel` | happy path | `PUZZLE_STATE` | rendered | twelve keys, `0`–`9`, `C` and `OK` (AC3) |
+| `PuzzlePanel` | happy path | `PUZZLE_STATE` | key `7` pressed | one `DIGIT_PRESSED` with `"7"`, display reads `7` (AC4) |
+| `PuzzlePanel` | boundary | `input: ""` | rendered | display present, text empty (AC5) |
+| `PuzzlePanel` | happy path | `input: "7"` | key `OK` pressed | one `SUBMIT` (AC6) |
+| `PuzzlePanel` | happy path | `SOLVED` | rendered | text `Oikein! Laatikko aukesi.`, no puzzle text (AC7) |
+| `PuzzlePanel` | happy path | `PUZZLE` → `SOLVED` | state changes | `play` called once (AC8) |
+| `PuzzlePanel` | edge case | already `SOLVED` | re-rendered | `play` still called once in total (AC9) |
+| `PuzzlePanel` | error case | wrong answer submitted | state returns `input: ""` | puzzle text unchanged, display empty, no congratulation (AC10) |
+| `ArScreen` | error case | camera permission `denied` | rendered | text `Kamera tarvitaan tehtävän avaamiseen.`, no keys (AC11) |
+| `ArScreen` | error case | camera permission `undetermined` | rendered | permission is requested exactly once |
+| `PuzzlePanel` | happy path | `SOLVED` | `Aloita alusta` pressed | one `RESET` (AC12) |
+| `PuzzlePanel` | happy path | `PUZZLE_STATE` with `input: "12"` | key `C` pressed | one `CLEAR`, display empty (AC13) |
+| `PuzzlePanel` | edge case | `PUZZLE_STATE` with `input: ""` | key `C` pressed | one `CLEAR`, display still empty, no throw (AC14) |
+
+## Spec Readiness checklist
+- [x] Every AC has a precise expected value — no "works correctly"
+- [x] Another person could write a test from each AC without asking
+- [x] Every AC can fail — one that cannot fail proves nothing
+- [x] Error and edge cases have ACs of their own
+- [x] Every AC appears in the testing strategy table
