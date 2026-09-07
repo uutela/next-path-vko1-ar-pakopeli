@@ -10,7 +10,8 @@
     "web": "expo start --web",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "generate:fanfare": "node scripts/generate-fanfare.mjs"
+    "generate:fanfare": "node scripts/generate-fanfare.mjs",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@maplibre/maplibre-react-native": "^11.3.10",
@@ -35,6 +36,7 @@
     "@types/react": "^19.2.18",
     "@vitejs/plugin-react": "^6.1.1",
     "jsdom": "^30.0.1",
+    "patch-package": "^8.0.1",
     "playwright": "^1.63.0",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0"
