@@ -106,3 +106,14 @@ calendar, notes). Those leftovers were removed and replaced:
 
 `What this is` was rewritten: the earlier text called this a building block
 for other projects, which the step 2 decisions had reversed.
+
+---
+
+## Step 3 — PRD
+
+> Write the PRD in specs/PRD.md: goal, users, the decisions I just made, and
+> explicit non-goals. One page. Do not use the feature template yet.
+
+Written as `specs/PRD.md`. No new decisions were introduced — the document
+only records what steps 1 and 2 settled, and states the non-goals explicitly
+so that later feature specs cannot quietly expand the scope.
