@@ -1,11 +1,6 @@
 import { appendDigit, checkAnswer, generatePuzzle } from './puzzle';
+import { scriptedRng } from '../testing/scriptedRng';
 import type { Puzzle } from './types';
-
-/** An rng that hands back a scripted sequence, then repeats the last value. */
-function scriptedRng(...values: number[]): () => number {
-  let index = 0;
-  return () => values[Math.min(index++, values.length - 1)] ?? 0;
-}
 
 const PUZZLE: Puzzle = { left: 5, right: 2, answer: 7 };
 

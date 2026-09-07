@@ -33,6 +33,7 @@ src/
                 ArScreen.tsx  PuzzlePanel.tsx
   config/       map.ts
   data/         points.json
+  testing/      scriptedRng.ts — helpers used only by tests
 assets/         fanfare.wav
 scripts/        generate-fanfare.mjs
 ```
