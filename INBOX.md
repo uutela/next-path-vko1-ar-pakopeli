@@ -16,3 +16,9 @@ One line per thing noticed while working. Not implemented, not detoured into.
   first, then the tests, then the implementation. The reason is the PRD —
   later projects read this repo as an example, and a domain function that
   silently accepts `"7abc"` is a worse example than one that does not.
+- `loadStoredPoints` guards against unparseable JSON (AC9) and against JSON
+  that is not an array, but not against an array of the wrong shape:
+  `[{"foo":1}]` and `[null]` are returned as if they were points. Probed by
+  running each input. Only this app writes the key, so the shape can only be
+  wrong if a future version changes it — which is exactly when it would hurt.
+  Fixing it means a validating criterion in `points-store.md` first.
