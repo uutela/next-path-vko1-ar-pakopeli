@@ -45,3 +45,13 @@ One line per thing noticed while working. Not implemented, not detoured into.
   stylesheet … in the HTML shell", and nothing ever did. Same shape as the
   `ArScreen.web.tsx` omission: an obligation written down and not enforced by
   any criterion.
+- **`@reactvision/react-viro` and `@maplibre/maplibre-react-native` cannot both
+  be prebuilt.** Verified by isolation: MapLibre alone succeeds, Viro alone
+  succeeds, both together fail in either plugin order with
+  `[ios.podfile]: withIosPodfileBaseMod: Failed to match "/post_install do
+  \|installer\|/"`. Viro's iOS plugin writes the Podfile directly through
+  `withDangerousMod` and `fs.writeFile`, while MapLibre's operates on Expo's
+  managed Podfile contents; MapLibre then sees a Podfile with no `post_install`
+  block. This blocks every native build, so the AR half has never run. It
+  touches a PRD decision — anchored AR *and* a MapLibre map — so it is a
+  decision, not a bug fix.

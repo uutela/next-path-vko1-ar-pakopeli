@@ -26,7 +26,8 @@
     },
     "plugins": [
       "@maplibre/maplibre-react-native",
-      "expo-audio"
+      "expo-audio",
+      "@reactvision/react-viro"
     ]
   }
 }
