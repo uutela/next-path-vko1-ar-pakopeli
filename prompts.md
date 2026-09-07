@@ -1209,3 +1209,45 @@ the canvas is 1280x664 with class `maplibregl-canvas`, and `maplibre-gl`'s
 stylesheet is absent from the document. `Map.web.tsx`'s own comment says the
 web build "must also load maplibre-gl's stylesheet … in the HTML shell", and
 nothing ever did. Filed in `INBOX.md`, not fixed.
+
+### 58
+> eikö pitäis jatkaa vaihetta 7 oikean react nativen testauksella?
+
+> Selvitä ja paikkaa Viron plugin
+
+→ Right, and the native attempt found three things the browser never could.
+
+**Viro had no native code at all.** The first `expo prebuild` succeeded and
+installed 244 pods with no Viro among them, because Viro had been installed
+with `npm install` rather than `npx expo install`, so its config plugin was
+never registered in `app.json`. The build would have compiled without AR and
+failed only at runtime.
+
+**With the plugin registered, prebuild broke**, with
+`withIosPodfileBaseMod: Failed to match "/post_install do |installer|/"`.
+Isolated rather than guessed: MapLibre alone fine, Viro alone fine, both
+together broken in either order.
+
+**The cause, read out of `withViroIos.js`:** the iOS plugin does its Podfile
+work inside callback-based `fs.readFile`/`fs.writeFile`, within an `async` mod
+that returns before either callback fires. The write therefore lands at an
+arbitrary later time. Alone that usually wins the race; beside another plugin
+editing the same file it does not.
+
+`patches/@reactvision+react-viro+2.58.1.patch` makes both calls synchronous,
+with `postinstall: patch-package` to reapply it. Prebuild then succeeds with
+both plugins, and the Podfile carries `pod 'ViroReact'` and
+`$MLRN.post_install(installer)` together. 248 pods: ViroReact 2.58.1, ViroKit
+1.0, MapLibreReactNative 11.3.10.
+
+**Then the simulator turned out to be impossible.** The build stopped with
+"Unable to find a destination matching the provided destination specifier",
+and `xcodebuild -showdestinations` lists no concrete simulator at all — only
+the placeholder — even with an iPhone 17 Pro booted. Viro's plugin sets
+`EXCLUDED_ARCHS[sdk=iphonesimulator*] = arm64`, which appears twice in the
+generated `project.pbxproj`. On an arm64 Mac that leaves no architecture for a
+simulator build.
+
+So the Appium-in-the-simulator plan does not work either, and it is Viro's
+constraint rather than ARKit's. Every native run needs a physical device.
+Xcode can see three connected already.

@@ -45,7 +45,7 @@ One line per thing noticed while working. Not implemented, not detoured into.
   stylesheet … in the HTML shell", and nothing ever did. Same shape as the
   `ArScreen.web.tsx` omission: an obligation written down and not enforced by
   any criterion.
-- **`@reactvision/react-viro` and `@maplibre/maplibre-react-native` cannot both
+- ~~RESOLVED~~ **`@reactvision/react-viro` and `@maplibre/maplibre-react-native` could not both
   be prebuilt.** Verified by isolation: MapLibre alone succeeds, Viro alone
   succeeds, both together fail in either plugin order with
   `[ios.podfile]: withIosPodfileBaseMod: Failed to match "/post_install do
@@ -54,4 +54,18 @@ One line per thing noticed while working. Not implemented, not detoured into.
   managed Podfile contents; MapLibre then sees a Podfile with no `post_install`
   block. This blocks every native build, so the AR half has never run. It
   touches a PRD decision — anchored AR *and* a MapLibre map — so it is a
-  decision, not a bug fix.
+  decision, not a bug fix. **Resolved by patching Viro.** Its iOS plugin read
+  and wrote the Podfile with callback-based `fs.readFile`/`fs.writeFile` inside
+  an async mod that returned before either completed, so the write landed at an
+  arbitrary later time. Alone it usually won the race; beside another Podfile
+  plugin it did not. `patches/@reactvision+react-viro+2.58.1.patch` makes both
+  calls synchronous, and `postinstall: patch-package` reapplies it. Both
+  libraries now prebuild and pod-install together: ViroReact 2.58.1, ViroKit
+  1.0 and MapLibreReactNative 11.3.10 across 248 pods.
+- **The app cannot run in the iOS simulator on Apple Silicon.** Viro's plugin
+  sets `EXCLUDED_ARCHS[sdk=iphonesimulator*] = arm64`, which lands in the
+  generated `project.pbxproj` at two places, leaving no architecture for a
+  simulator build on an arm64 Mac. `xcodebuild -showdestinations` lists no
+  concrete simulator even with an iPhone 17 Pro booted — only the placeholder.
+  So the plan to drive the map screen with Appium in the simulator does not
+  work, and every native run needs a physical device.
