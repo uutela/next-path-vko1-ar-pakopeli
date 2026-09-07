@@ -661,3 +661,36 @@ radius, so the test passes with `<` just as well as `<=`. Verified by running
 both comparisons. The criterion does not prove what it claims. Per AGENTS.md
 the spec is corrected before the test, so this is recorded rather than patched
 mid-cycle.
+
+### 45
+*In reply to: "Kumman haluat?" — fix AC6 by asserting an exact-radius distance, or drop the inclusivity claim*
+
+> dropataan toi inclusive
+
+→ The spec was corrected first, as AGENTS.md requires, and only then the test.
+
+`proximity.md` AC6 is now "A player just inside the radius is within it", and
+states the measured distance — 19.999997645 m against a 20 m radius — instead
+of claiming 20.0 m. A paragraph beneath it records that behaviour at exactly
+`radiusMeters` is deliberately unspecified, that the earlier claim was
+untestable with this coordinate, and why manufacturing an exact-boundary
+coordinate is not worth it: a difference of micrometres cannot reach a player
+through a GPS reading that drifts by metres. The Risk section names the
+consequence — no test would catch a future change between `<` and `<=`.
+
+The doc comment on `isWithinRadius` was changed too. It had claimed the
+boundary was inclusive, which is more than the spec now says, and a comment
+that promises more than the spec is the same defect in a different file.
+
+Verified rather than assumed: with the implementation flipped to `<`, the
+suite still passes — which is now correct, since both comparisons are
+acceptable. Flipped back to `<=` afterwards.
+
+```
+Tests  11 passed (11)
+exit 0
+```
+
+The `INBOX.md` line is marked resolved rather than deleted, so the record shows
+the mechanism working end to end: noticed during a cycle, filed as one line,
+not detoured into, resolved by a decision.

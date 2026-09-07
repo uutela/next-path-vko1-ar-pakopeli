@@ -58,7 +58,9 @@ describe('isWithinRadius', () => {
     expect(isWithinRadius(NORTH_19_M, POINT)).toBe(true);
   });
 
-  it('AC6: a player exactly on the radius is within it', () => {
+  it('AC6: a player just inside the radius is within it', () => {
+    // 19.999997645 m against a 20 m radius. Behaviour at exactly radiusMeters
+    // is unspecified on purpose — see specs/features/proximity.md.
     expect(isWithinRadius(NORTH_20_M, POINT)).toBe(true);
   });
 

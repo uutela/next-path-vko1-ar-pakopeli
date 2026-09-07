@@ -47,10 +47,18 @@ supplies coordinates; these functions never call it.
 **When** `isWithinRadius(player, point)` is called
 **Then** it returns `true`
 
-### AC6: A player exactly on the radius is within it
-**Given** the same point and a player at `{ latitude: 60.1700798643, longitude: 24.9384 }` (20.0 m away)
+### AC6: A player just inside the radius is within it
+**Given** the same point and a player at `{ latitude: 60.1700798643, longitude: 24.9384 }`, which measures 19.999997645 m against a 20 m radius
 **When** `isWithinRadius(player, point)` is called
-**Then** it returns `true` — the boundary is inclusive
+**Then** it returns `true`
+
+Behaviour at a distance of *exactly* `radiusMeters` is deliberately left
+unspecified: both `<` and `<=` are acceptable. An earlier version of this
+criterion claimed the boundary was inclusive, but its coordinate is 2.4
+micrometres inside the radius, so the test passed under either comparison and
+proved nothing about the boundary. Rather than manufacture a coordinate that
+lands exactly on it, the claim was dropped — a difference of micrometres
+cannot matter to a GPS reading that drifts by metres.
 
 ### AC7: A player outside the radius is not within it
 **Given** the same point and a player at `{ latitude: 60.1700888575, longitude: 24.9384 }` (21 m away)
@@ -81,6 +89,10 @@ supplies coordinates; these functions never call it.
 - **A 20 m radius may still be too tight** if the phone reports poor accuracy
   under trees or between buildings. The radius is a field of `EscapePoint`,
   not a constant, so widening it is data, not code.
+- **Nothing pins the comparison at exactly `radiusMeters`.** This is deliberate
+  — see AC6 — and it means a future change between `<` and `<=` would not be
+  caught by any test. That is acceptable because no GPS reading is precise
+  enough for the distinction to reach a player.
 - **Rollback:** delete the two files. No other module imports them yet.
 
 ## Testing Strategy (MANDATORY)
@@ -94,7 +106,7 @@ supplies coordinates; these functions never call it.
 | `distanceMeters` | error case | latitude `-91` | called | throws `RangeError`, same message (AC8) |
 | `distanceMeters` | error case | longitude `181` | called | throws `RangeError`, message `longitude must be between -180 and 180` (AC9) |
 | `isWithinRadius` | happy path | 19 m away, radius 20 | called | returns `true` (AC5) |
-| `isWithinRadius` | boundary | exactly 20.0 m away, radius 20 | called | returns `true` (AC6) |
+| `isWithinRadius` | boundary | 19.999997645 m away, radius 20 | called | returns `true` (AC6) |
 | `isWithinRadius` | boundary | 21 m away, radius 20 | called | returns `false` (AC7) |
 | `isWithinRadius` | boundary | 0 m away, radius 20 | called | returns `true` |
 

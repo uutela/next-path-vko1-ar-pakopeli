@@ -37,9 +37,9 @@ export function distanceMeters(a: Coordinates, b: Coordinates): number {
 }
 
 /**
- * Whether the player is close enough to a point to open it. The boundary is
- * inclusive: standing exactly on the radius counts as inside.
- * See specs/features/proximity.md.
+ * Whether the player is close enough to a point to open it. Behaviour at a
+ * distance of exactly radiusMeters is unspecified, so this comparison is free
+ * to change. See specs/features/proximity.md.
  */
 export function isWithinRadius(player: Coordinates, point: EscapePoint): boolean {
   return distanceMeters(player, point.coordinates) <= point.radiusMeters;
