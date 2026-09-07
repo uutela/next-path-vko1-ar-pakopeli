@@ -57,6 +57,22 @@ style URL from `src/config/map.ts`; neither declares its own.
 **When** it is searched for `apiKey`, `api_key`, `access_token` and `accessToken`
 **Then** there are no matches
 
+### AC8: Standing at a point offers to open the puzzle
+**Given** state `{ kind: 'NEAR', point: POINT }`
+**When** `MapScreen` is rendered
+**Then** exactly one pressable element with the text `Avaa tehtävä` is present, and pressing it dispatches `OPEN_PUZZLE` exactly once
+
+### AC9: The offer is absent when no point is in range
+**Given** state `{ kind: 'MAP' }`
+**When** `MapScreen` is rendered
+**Then** no element with the text `Avaa tehtävä` is present
+
+AC8 and AC9 were moved here from `ar-panel.md`, where AC1 had placed the
+button on the AR screen. That could not work: `specs/ui-ux.md` shows the AR
+screen appearing only in `PUZZLE` and `SOLVED`, so a button rendered there
+could never be pressed in `NEAR` — the state in which it fires. The map screen
+is what the player is looking at when they arrive.
+
 ## Files to Modify
 | File | Change |
 |---|---|
@@ -64,6 +80,8 @@ style URL from `src/config/map.ts`; neither declares its own.
 | `src/ui/Map.tsx` | New. Native map with markers and attribution |
 | `src/ui/Map.web.tsx` | New. Web map, same props, same constants |
 | `src/ui/Map.test.tsx` | New. AC4–AC6 against the rendered output |
+| `src/ui/MapScreen.tsx` | New. Composes the map with the offer to open a puzzle |
+| `src/ui/MapScreen.test.tsx` | New. AC8 and AC9 |
 | `src/config/map.test.ts` | New. AC1, AC3 and AC7 as source-level assertions |
 
 ## Risk
@@ -92,6 +110,8 @@ style URL from `src/config/map.ts`; neither declares its own.
 | `Map` | happy path | two points | rendered | two markers at the given coordinates (AC5) |
 | `Map` | boundary | zero points | rendered | zero markers, container present with `flex: 1`, no throw (AC6) |
 | source tree | error case | all files | searched for key and token names | no matches (AC7) |
+| `MapScreen` | happy path | `NEAR` | rendered | one pressable `Avaa tehtävä`; pressing dispatches one `OPEN_PUZZLE` (AC8) |
+| `MapScreen` | boundary | `MAP` | rendered | no `Avaa tehtävä` element (AC9) |
 
 ## Spec Readiness checklist
 - [x] Every AC has a precise expected value — no "works correctly"

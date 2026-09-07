@@ -939,3 +939,56 @@ tsc exit 0
 the player or a point. No criterion asks for centring, so the
 smallest-implementation rule left it out — but a map that never centres is not
 usable in the field. It needs a criterion before it gets code.
+
+### 51 — same prompt, ar-panel.md
+
+> ok, jatka
+
+**Two spec conflicts were surfaced before any code, and both were decided by
+the user rather than guessed.**
+
+*AC1 was in the wrong spec.* `ui-ux.md` shows the AR screen only in `PUZZLE`
+and `SOLVED`, so an `Avaa tehtävä` button rendered there could never be
+pressed in `NEAR`, the state that fires it. Moved to `map-view.md` as AC8 and
+AC9; `ar-panel.md` AC1 now covers what that screen actually owns — the camera
+preview.
+
+*AC15 was in the wrong units.* Viro declares `ViroStyle = ViewStyle &
+ShadowStyleIOS`, so `minWidth: 48` typechecks — but Viro lays out in metres of
+world space, so it would have meant a 48-metre key, and the test would have
+passed while asserting nonsense. The worst kind of green: not a red that needs
+fixing, but a green that means nothing. Rewritten in 3D units, with the number
+derived rather than picked: 0.06 m at 0.6 m subtends 5.72 degrees, computed
+before writing it down.
+
+**The Viro API was read, not recalled, and two guesses were wrong.**
+`ViroText` has no `testID`, and `ViroButton` requires an image `source` — it
+is not a text button. Keys are `ViroFlexView` with `onClick` and `viroTag`,
+both real props, so the tags the tests query are the component's own output.
+
+RED: 18 failures across `PuzzlePanel`, `ArScreen` and `MapScreen`.
+`map-view.md` AC9 passed immediately — the stub renders nothing, so the button
+it asserts is absent was trivially absent. Recorded, not glossed.
+
+GREEN: 84 tests pass, `tsc` clean.
+
+**AC9 did not test what it claimed, and this was only found by trying to break
+it.** Removing the component's replay guard left all 84 green. The reason:
+`useEffect` with dependencies `[state.kind, audio]` does not re-run when a
+re-render passes the identical props, so the guard never executed — the test
+proved React's dependency array works, not that our component guards anything.
+The spec was fine; the test was weak. It now renders a fresh adapter object
+each time, which is what an inline prop gives in real code. Verified both
+ways: green with the guard, red without it.
+
+The first attempt to check this was itself broken — a `sed` whose pattern
+never matched, reported as "nothing failed". The second attempt asserted the
+match first. A check that cannot fail is worth no more than a test that
+cannot.
+
+**Filed in `INBOX.md`:** `ArScreen` passes Viro a scene closure through
+`initialScene`. If Viro calls it only at mount, the panel keeps the props it
+captured and the typed input never updates on screen. No criterion covers the
+panel inside the AR scene, so nothing catches it.
+
+All six specs are green. 84 tests, 10 files.
