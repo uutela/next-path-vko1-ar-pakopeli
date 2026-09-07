@@ -595,3 +595,69 @@ because AC1 asserts strict equality with `toBe(0)`. It holds because
 REFACTOR: nothing done. The radius is a named constant, `toRadians` is
 extracted, and the variable names come from the spec. There is no duplication
 to remove after two tests.
+
+### 44
+> Voidaanko nyt huijata ja tehdä loput tdd-jutut kerralla? Mut kuitenkin
+> laadukkaasti
+
+> joo
+
+→ **A deliberate departure from the course instruction**, which says "stop
+after this AC". Recorded here so the log does not misrepresent how the work
+was done.
+
+Batched per spec rather than per criterion, in two runs: all of a spec's tests
+written with no implementation at all, run, red output shown — then the
+implementation, run, green output shown. The two things that make a test
+trustworthy survive that: the test is written before the code rather than
+derived from it, and the red is observed. What is lost is the per-criterion
+view of which AC forced which line, the chance to notice a criterion passing
+as a side effect of another one's implementation, and "smallest
+implementation" as a per-test discipline.
+
+Scope limited to the four pure domain specs, 44 remaining criteria. The two UI
+specs need MapLibre and Viro installed and a different kind of verification,
+so they are their own job.
+
+**proximity — AC3 to AC9, plus two rows from the testing strategy table**
+
+RED. All nine tests present, `isWithinRadius` added as a stub that throws.
+
+```
+× AC8: latitude above 90 is rejected      AssertionError: expected function to throw an error, but it didn't
+× AC8: latitude below -90 is rejected     AssertionError: expected function to throw an error, but it didn't
+× AC9: longitude above 180 is rejected    AssertionError: expected function to throw an error, but it didn't
+× AC5: a player inside the radius          Error: isWithinRadius is not implemented
+× AC6: a player exactly on the radius      Error: isWithinRadius is not implemented
+× AC7: a player outside the radius         Error: isWithinRadius is not implemented
+× AC5: a player standing on the point      Error: isWithinRadius is not implemented
+Tests  7 failed | 4 passed (11)
+```
+
+Four passed immediately: AC1 and AC2 were already green, and **AC3 and AC4
+went green the moment they were written**, because the haversine formula AC2
+forced out already satisfies them. That is not a batching artifact — it would
+have happened in the strict per-criterion flow too, since both assert
+properties of a formula that already exists. It is worth naming because a
+test that has never been red is exactly what the workflow warns about, and
+these two are only trustworthy because the implementation they describe was
+driven out by a criterion that *was* red.
+
+GREEN. `assertValidCoordinates` for AC8 and AC9, and `isWithinRadius`
+delegating to `distanceMeters` with an inclusive comparison.
+
+```
+Test Files  1 passed (1)
+     Tests  11 passed (11)
+exit 0
+```
+
+REFACTOR: nothing. Validation is extracted, the radius is a named constant,
+and `isWithinRadius` is one line.
+
+**Noticed, not fixed** — one line added to `INBOX.md`: AC6 says it pins the
+inclusive boundary, but its coordinate measures 19.999997645 m against a 20 m
+radius, so the test passes with `<` just as well as `<=`. Verified by running
+both comparisons. The criterion does not prove what it claims. Per AGENTS.md
+the spec is corrected before the test, so this is recorded rather than patched
+mid-cycle.
