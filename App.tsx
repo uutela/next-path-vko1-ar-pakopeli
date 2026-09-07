@@ -1,27 +1,83 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createAudioPlayer } from 'expo-audio';
+import { useCameraPermissions } from 'expo-camera';
+import * as Location from 'expo-location';
+import { useMemo } from 'react';
+import { AppShell } from './src/ui/AppShell';
+import { createPointStore } from './src/adapters/pointStore';
+import seedPoints from './src/data/points.json';
+import type { AudioPlayer } from './src/adapters/audio';
+import type { CameraAdapter } from './src/adapters/camera';
+import type { LocationSource } from './src/adapters/location';
+import type { EscapePoint } from './src/domain/types';
 
 /**
- * Placeholder shell. The map and AR screens arrive with their specs in
- * specs/features/; this exists so `npm start` is a real command.
+ * The one file no acceptance criterion covers: it builds the real adapters,
+ * none of which run under jsdom. Kept thin for that reason — if the tests are
+ * green and the app misbehaves, suspect this file first.
+ * See specs/features/app-shell.md.
  */
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>AR Pakopeli</Text>
-      <Text style={styles.body}>Ei vielä pisteitä.</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+
+const SEED = seedPoints as EscapePoint[];
+
+/** Real GPS. The mock source in src/adapters/location.ts is for development. */
+function createExpoLocationSource(): LocationSource {
+  return {
+    watch(onChange) {
+      let subscription: Location.LocationSubscription | undefined;
+      let cancelled = false;
+
+      void (async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted' || cancelled) {
+          return;
+        }
+        subscription = await Location.watchPositionAsync(
+          { accuracy: Location.Accuracy.High, distanceInterval: 1 },
+          ({ coords }) => onChange({ latitude: coords.latitude, longitude: coords.longitude }),
+        );
+        if (cancelled) {
+          subscription.remove();
+        }
+      })();
+
+      return () => {
+        cancelled = true;
+        subscription?.remove();
+      };
+    },
+  };
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#faf9f7',
-  },
-  title: { fontSize: 32, fontWeight: '600', color: '#1a1a1a' },
-  body: { fontSize: 18, color: '#4a4a4a', marginTop: 8 },
-});
+// One sound, created once. The adapter ignores the asset argument because
+// there is nothing else to play.
+const fanfarePlayer = createAudioPlayer(require('./assets/fanfare.wav'));
+
+export default function App() {
+  const [permission, requestPermission] = useCameraPermissions();
+
+  const location = useMemo(createExpoLocationSource, []);
+  const pointStore = useMemo(() => createPointStore(AsyncStorage), []);
+  const audio = useMemo<AudioPlayer>(() => ({ play: () => fanfarePlayer.play() }), []);
+
+  const camera = useMemo<CameraAdapter>(
+    () => ({
+      permission: permission?.status ?? 'undetermined',
+      request: () => {
+        void requestPermission();
+      },
+    }),
+    [permission, requestPermission],
+  );
+
+  return (
+    <AppShell
+      seed={SEED}
+      pointStore={pointStore}
+      location={location}
+      audio={audio}
+      camera={camera}
+      rng={Math.random}
+    />
+  );
+}

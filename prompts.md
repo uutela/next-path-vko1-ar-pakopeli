@@ -1040,3 +1040,74 @@ it passes. The cast sits on that one line rather than weakening
 
 Verified by putting the closure back: AC16 goes red alone, and nothing else
 does. Restored.
+
+---
+
+## Between steps 6 and 7 — the app shell
+
+### 53
+> Aloitetaan askel 7 … mutta mietityttää toi chrome laajennos. Ja lisäksi
+> pitääkö react native testata muulla tapaa?
+
+→ Both questions were worth asking, and checking the repo before starting the
+app turned up a third problem that mattered more than either.
+
+**`App.tsx` was still the step 5 placeholder.** `grep` found zero references
+to `MapScreen`, `ArScreen`, `transition` or `mergePoints` in it. Eighty-five
+tested parts existed and nothing joined them, so any tool pointed at the app
+would have shown "Ei vielä pisteitä." `src/adapters/location.ts` did not
+exist either, so `LOCATION_CHANGED` had no source.
+
+On React Native: the browser can only reach the map half. Viro is native, and
+ARKit anchoring is native-only by the PRD's own decision — web is a bonus
+without it.
+
+### 54
+> haluan että käytetään mieluummin playwright mcp:tä. Eikös noi jotkut voi
+> testata xcoden simulaattorilla ja mockeilla tai testikirjastolla
+
+→ **No Playwright MCP is configured here** — a tool search returned Appium and
+Notion, nothing else. Recommended instead: `playwright` as a dev dependency
+plus `scripts/browser-smoke.mjs`, which is also what the course's own step 7
+artifact is.
+
+On the simulator: right, and better supported than expected. A full Appium MCP
+is available, including `appium_geolocation`, which would drive `MAP → NEAR`
+without anyone going outside. ARKit still does not run in the iOS simulator,
+so the anchored panel is first seen on a real device — Apple's limit, not ours.
+
+### 55
+> ja tehdään speksi + tdd
+
+**app-shell — AC1 to AC9**
+
+`specs/features/app-shell.md`: nine criteria over the composition, the
+location source, and the screen routing. Everything is injected, so the whole
+shell renders in a test with no device.
+
+One spec wording was corrected before writing code: it had said `useReducer`
+over `transition`, but the point list arrives asynchronously and a reducer
+cannot read it without either impurity or threading context through every
+action. It now says the list is read through a ref, so `transition` keeps
+taking its context as an argument and stays pure.
+
+RED: eleven failures, every one `createMockLocationSource is not implemented`
+or a null render.
+
+GREEN: 96 tests across 12 files, `tsc` clean.
+
+`expo-location` turned out never to have been installed — the earlier
+`expo install` covered camera, audio and storage only. Installed, and the
+expo APIs were read from typings rather than recalled:
+`watchPositionAsync(options, callback)` resolving to a subscription with
+`remove()`, `useCameraPermissions`, `createAudioPlayer`.
+
+The root `App.tsx` now builds the real adapters and renders `AppShell`. No
+criterion covers it, by design — it is the one file that cannot run under
+jsdom, so the spec's Risk section names it as the first thing to suspect when
+tests are green and the app misbehaves. Every adapter it builds is wrapped in
+`useMemo`, because a fresh `location` object each render would resubscribe on
+every render.
+
+Verified by breaking: dropping the subscription cleanup turns AC6 red alone,
+and returning the seed instead of the merge turns AC5 red alone.
