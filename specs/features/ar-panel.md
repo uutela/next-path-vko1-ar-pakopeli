@@ -95,10 +95,10 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 **When** the key labelled `C` is pressed
 **Then** a `CLEAR` event is dispatched exactly once, the input display is still empty, and nothing is thrown
 
-### AC15: Every key is large enough to hit outdoors
+### AC15: Every key declares a touch target large enough to hit outdoors
 **Given** `PUZZLE_STATE`
-**When** the panel is rendered and each key's layout is measured
-**Then** every one of the twelve keys has a touch target of at least `48` x `48` points, and the centres of any two adjacent keys are at least `56` points apart
+**When** the panel is rendered and each key's resolved style is read
+**Then** every one of the twelve keys has both `minWidth` and `minHeight` of at least `48`, and the keypad's row and column gap is at least `8` — which places adjacent key centres at least `56` apart
 
 ## Files to Modify
 | File | Change |
@@ -119,9 +119,15 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 - **Field-only risks, which no AC above covers:** surface tracking in bright
   sunlight, on grass or plain asphalt, and whether the panel is legible
   against a bright sky. These need a visit to the demo location before the
-  demo. Key size used to be on this list; AC15 moved it onto the desk, since
-  a target too small to hit is the failure most likely to ruin a demo and the
-  least excusable to discover outdoors.
+  demo. Key size used to be on this list; AC15 moved most of it onto the desk,
+  since a target too small to hit is the failure most likely to ruin a demo
+  and the least excusable to discover outdoors.
+- **What AC15 does not prove.** It asserts the styles that produce a 48 point
+  target, not the pixels that result. jsdom has no layout engine, so no test
+  here can measure anything — see `specs/tech-stack.md`. A style that is
+  correct but overridden by a parent, or a panel scaled down in 3D space,
+  would still pass. The rendered size is confirmed once, on the device, at
+  the same field visit as tracking and legibility.
 - **The fanfare carries no licence risk**: it is synthesised by
   `scripts/generate-fanfare.mjs`, which is in the repo, so the asset is our
   own work with no third-party terms attached. Regenerating it is one
@@ -150,7 +156,7 @@ Throughout, `PUZZLE_STATE` is `{ kind: 'PUZZLE', point: POINT, puzzle: { left: 5
 | `PuzzlePanel` | happy path | `SOLVED` | `Aloita alusta` pressed | one `RESET` (AC12) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` with `input: "12"` | key `C` pressed | one `CLEAR`, display empty (AC13) |
 | `PuzzlePanel` | edge case | `PUZZLE_STATE` with `input: ""` | key `C` pressed | one `CLEAR`, display still empty, no throw (AC14) |
-| `PuzzlePanel` | boundary | `PUZZLE_STATE` | each key measured | every key >= 48 x 48 points, adjacent centres >= 56 points apart (AC15) |
+| `PuzzlePanel` | boundary | `PUZZLE_STATE` | each key's resolved style read | every key `minWidth` >= 48 and `minHeight` >= 48, keypad gap >= 8 (AC15) |
 
 ## Spec Readiness checklist
 - [x] Every AC has a precise expected value — no "works correctly"

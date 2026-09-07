@@ -7,6 +7,11 @@ after each entry records what it changed.
 
 Course-step prompts are quoted in full. Nothing here is paraphrased.
 
+The assistant's own replies are not reproduced — this is a record of what
+drove the work, not a transcript. Several messages below are answers to a
+question that is therefore invisible, so those carry an *In reply to* line
+naming the question they settle.
+
 ---
 
 ## Before the work — establishing which rules apply
@@ -20,6 +25,8 @@ of it, so the answer was: no persona, no delegation, and the AGENTS.md
 workflows are the operating model here.
 
 ### 2
+*In reply to: the explanation that this repo overrides the global orchestrator persona, and that the AGENTS.md workflows apply instead*
+
 > Kiitos, kunhan tsekkasin :)
 
 ---
@@ -80,6 +87,8 @@ forbids app use, so "OSM without an account" does not by itself name a tile
 source.
 
 ### 5
+*In reply to: "Ankkuroidaanko numeronäppäimistö myös 3D-tilaan, vai pysyykö se ruudulla?"*
+
 > Numeronäppäimet ovat laatikkossa ja niitä voi painaa :)
 
 → The panel and keypad are one anchored object; pressing means touching the
@@ -142,6 +151,8 @@ repo, which had no source files at all.
 > Montako pistettä ja tehtävää MVP1:ssä? — **Yksi piste, yksi tehtävä**
 
 ### 11
+*In reply to: "Onko sinulla toinen repo, josta nuo Map.tsx / Map.web.tsx ovat?" — listed as open question 1*
+
 > unohda kysymyksen 1 jutut.. ei katsota sinne
 
 ### 12
@@ -154,6 +165,8 @@ risks that no desk test can cover: GPS drift against the radius, and ARKit /
 ARCore surface tracking in bright sun on plain asphalt or grass.
 
 ### 13
+*In reply to: two open questions: (1) does solved progress survive a restart, and (2) what "the box opens" means visually*
+
 > 2. teksti vaihtuu onnittelutekstiksi ja joku fanfaari soi.. mitä itse olet
 > mieltä kohdasta 1?
 
@@ -200,6 +213,8 @@ which TypeScript cannot express with `interface`, so the rule as written would
 have forbidden the design already agreed.
 
 ### 17
+*In reply to: the three replacement rules offered after the briefing leftovers were removed — the adapter boundary, the language rule, and `type` for unions*
+
 > ja hei noi ehdotuksesi siis hyvät coding kohtaan
 
 → All three applied: `Interfaces for every data structure; type only for
@@ -208,6 +223,8 @@ unions`, the adapter rule rewritten for GPS, camera and point storage, and
 English`.
 
 ### 18
+*In reply to: "Sanotko ok, niin siivoan ne samalla" — cleaning the same leftovers out of the Guardrails section*
+
 > ok
 
 → Guardrails cleaned of the same leftovers and replaced with one rule that
@@ -222,16 +239,22 @@ injected — `generatePuzzle(rng: () => number)` — or the function is impure a
 no acceptance criterion could ever state an exact expected value.
 
 ### 20
+*In reply to: "puuttuu enää laukaisusäde metreinä — suositukseni 20–30 m"*
+
 > 20m ok
 
 → Trigger radius 20 m, sized for GPS drift rather than precision.
 
 ### 21
+*In reply to: "Kaksi lukua väliltä 1–9, vastaus siis 2–18. Käykö se?"*
+
 > sopii
 
 → Difficulty: two operands, each 1–9, so the answer is 2–18.
 
 ### 22
+*In reply to: a request to read "What this is" and put it in your own words, since the course asks for that section specifically*
+
 > what this is osio on nyt hyvä
 
 → `AGENTS.md`'s "What this is" had been left saying this repo was a building
@@ -243,6 +266,8 @@ with real GPS, one point, one puzzle, end to end.
 > pitäisikö tehdä commit
 
 ### 24
+*In reply to: three proposals: `git init`, a `.gitignore` written before any dependency exists, and the first commit*
+
 > Nämä ok.. ja saa olla public myös mun uutela githubissa
 
 → `git init`, a `.gitignore` written before any dependency existed so
@@ -262,6 +287,8 @@ github.com/uutela/next-path-vko1-ar-pakopeli.
 explicitly so later feature specs cannot quietly expand the scope.
 
 ### 26
+*In reply to: the finished `specs/PRD.md`, offered for review before committing*
+
 > PRD OK.. tee commit ja push
 
 ### 27
@@ -299,6 +326,8 @@ was left open rather than resolved silently: the keypad had no clear key, so a
 mistyped digit could only be recovered by spending a wrong answer.
 
 ### 29
+*In reply to: the open question in `ar-panel.md`: the keypad had no clear key, so a mistyped digit could only be recovered by spending a wrong answer*
+
 > tehdään c-näppäin
 
 → Twelve keys: `0`–`9`, `C` and `OK`. `CLEAR` added to `GameEvent`;
@@ -316,6 +345,8 @@ with no clipped samples, DC offset 0.000001, first and last sample exactly 0
 so it neither clicks in nor out.
 
 ### 31
+*In reply to: `assets/fanfare.wav`, sent for listening before the specs were updated*
+
 > fanfare.wav ok
 
 ### 32
@@ -428,6 +459,8 @@ and their artifacts. The step titles come from that table; the prompt text for
 each step arrives only when it is given.
 
 ### 38
+*In reply to: the explanation that the step titles came from the course table pasted in message 27, not from knowing the course*
+
 > Ahaa, selvä :)
 
 ### 39
@@ -441,7 +474,37 @@ were missing as written — "Leaflet ja carto?", "20m ok", "sopii" and others
 existed only as summarised outcomes. That was a choice made without asking.
 
 ### 40
+*In reply to: "Kirjoitanko prompts.md:n uudelleen niin, että jokainen viestisi on sanatarkasti järjestyksessä?"*
+
 > Korjaa vaan
 
 → This file rewritten so every message appears verbatim and in order, with the
 earlier summaries kept as the `→` commentary beside each.
+
+### 41
+*In reply to: "Toi prompt.md vähän epäselvä, kun siinä ei näy sun kysymyksiä" — and to the open question about AC15*
+
+> Lisää, jos pystyt
+
+> Saa tehdä: muotoillaanko ar-panel.md AC15 uudelleen niin, että se lupaa
+> tyyliarvot eikä mitattua layoutia — koska jsdomissa ei ole layout-moottoria
+> eikä testi pysty mittaamaan. Se on ainoa kohta, jossa speksi lupaa enemmän
+> kuin testi voi näyttää.
+
+→ Fifteen *In reply to* lines added above, so the short answers are readable
+without the questions they answer.
+
+AC15 rewritten to promise what a test here can read: every key declares
+`minWidth` and `minHeight` of at least 48, and the keypad gap is at least 8,
+which is what places adjacent centres 56 apart. `AGENTS.md` is explicit that
+when a spec and a test disagree the spec is corrected first, so the change was
+made in the spec rather than by weakening a test later.
+
+Checking for the same defect elsewhere found one more, introduced by the
+earlier readiness fix: `map-view.md` AC6 had been rewritten to require "a
+measured width and height both greater than 0", which fails for exactly the
+same reason — jsdom measures nothing, so every element is 0 x 0. It now
+requires the container to be present with a resolved style declaring `flex: 1`.
+
+Both specs record what the tests deliberately do not prove, so the field visit
+has a written list rather than a memory.

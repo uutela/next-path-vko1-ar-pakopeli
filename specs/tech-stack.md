@@ -47,9 +47,11 @@ licence applies at all.
 test tooling is Jest-shaped and does not run under Vitest. Component tests
 therefore render through `react-native-web` in jsdom. That verifies the render
 tree, the text, the props and the handlers — but jsdom has no layout engine,
-so it measures nothing. `ar-panel.md` AC15 asks for keys of at least 48 x 48
-points *measured*; under this setup it can only assert the style values that
-produce that size. Real layout is confirmed on the device.
+so it measures nothing. `ar-panel.md` AC15 was written against this limit
+rather than around it: it promises the *declared* style values — `minWidth`
+and `minHeight` of at least 48, keypad gap at least 8 — because those are what
+a test here can actually read. The rendered size is confirmed once on the
+device, and `ar-panel.md` records that as a field check.
 
 The domain layer is plain TypeScript and has none of this friction — it is the
 larger part of the test suite and runs directly.
