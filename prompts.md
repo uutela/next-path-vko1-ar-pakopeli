@@ -882,3 +882,60 @@ wrong if a future version changes it, which is exactly when it would hurt.
 
 With this, all four pure domain specs are green: 58 tests across
 `distance`, `puzzle`, `gameState` and `points`. The two UI specs remain.
+
+### 50 — same prompt, map-view.md
+
+> eikös ole tarkoitus tehdä kaikki testit ennen kokeilua, joten tehdään ensin
+
+→ Right, and it is the point of working from specs. The two UI specs were done
+before any attempt to run the app.
+
+`@maplibre/maplibre-react-native`, `maplibre-gl` and `react-map-gl` installed —
+the deferral recorded in step 5 ends here, because this is the code that uses
+them. The MapLibre API was read from the installed typings rather than
+recalled: `Map` takes `mapStyle`, `Marker` takes `lngLat` as
+`[longitude, latitude]`.
+
+**map-view — AC1 to AC7**
+
+RED, on the first attempt, was wrong for an instructive reason. AC1 searches
+the source tree for the tile host and expects exactly one file to contain it —
+and the *test file itself* matched, because the assertion spelled the URL out
+in full. The failure read `expected [ 'src/config/map.test.ts' ] to deeply
+equal [ 'src/config/map.ts' ]`.
+
+That is a broken instrument, not a disagreement between test and spec, so
+fixing it is not the forbidden kind of test-fixing: the needle and the expected
+value are now both built from parts, so the file never contains the strings it
+searches for. The corrected red read `expected [] to deeply equal
+[ 'src/config/map.ts' ]` — nothing contained the URL yet.
+
+AC7 was green from the moment it was written: no key or token names existed to
+find. Recorded rather than glossed over, for the same reason as proximity's
+AC3 and AC4.
+
+GREEN. Both platform components import the same two constants. Native uses
+MapLibre's `Map`/`Marker`; web uses `react-map-gl/maplibre`. Component tests
+mock the native module and record what our component asks it to draw, so what
+is under test is our marker-per-point logic, not MapLibre's rendering.
+
+Two criteria were then deliberately broken to confirm they can fail: dropping
+the attribution's `fontSize` to 8 turned AC4 red on its own, and inlining the
+URL into `Map.web.tsx` turned AC1 red on its own. Both restored.
+
+**`npx tsc --noEmit` broke, and was fixed before claiming green.** The
+source-scanning test imports `node:fs` and `node:path`, which needs
+`@types/node` and `"node"` in the tsconfig `types` array. AGENTS.md promises
+that command works, so a green test run alongside a red type check is not
+green.
+
+```
+Test Files  7 passed (7)
+     Tests  65 passed (65)
+tsc exit 0
+```
+
+**Filed in `INBOX.md`:** the map renders no `Camera`, so it never centres on
+the player or a point. No criterion asks for centring, so the
+smallest-implementation rule left it out — but a map that never centres is not
+usable in the field. It needs a criterion before it gets code.
