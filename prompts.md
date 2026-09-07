@@ -742,3 +742,46 @@ non-digit, so `"7abc"`, `"7.9"`, `"+7"` and `"7e0"` all read as 7. Probed by
 running each input rather than assumed. No criterion covers them and the
 keypad cannot produce them, since `appendDigit` only ever appends `0`-`9`, so
 this is recorded rather than hardened.
+
+### 47
+*In reply to: three options for the INBOX line on `checkAnswer` — close it into the spec's Risk section, harden it, or leave it open*
+
+> 2
+
+→ Hardened. The order AGENTS.md requires was followed exactly: spec, then
+test, then implementation.
+
+`puzzle.md` gained AC13, "Input containing anything but digits is rejected",
+covering `"7abc"`, `"7.9"`, `"+7"` and `"7e0"` — each of which a bare
+`parseInt` reads as 7. Whitespace stays acceptable, since AC6 already covers
+`"7 "`, so the rule is that the input must be all digits *after* trimming.
+The criterion states its own justification, because nothing in MVP1 can
+produce such input: the PRD says later projects read this repo as an example,
+and a domain function that silently accepts `"7abc"` is a worse example.
+
+RED, before touching the implementation:
+
+```
+× AC13: trailing letters are rejected      AssertionError: expected true to be false
+× AC13: a decimal point is rejected        AssertionError: expected true to be false
+× AC13: a leading sign is rejected         AssertionError: expected true to be false
+× AC13: exponent notation is rejected      AssertionError: expected true to be false
+Tests  4 failed | 24 passed (28)
+```
+
+A useful shape of red: not "not implemented" but "expected true to be false".
+The function existed and worked — it was the *specified behaviour* that
+changed, so the failure is the old behaviour being caught rather than a
+missing one.
+
+GREEN with a `DIGITS_ONLY` guard before the parse.
+
+```
+Test Files  2 passed (2)
+     Tests  28 passed (28)
+exit 0
+```
+
+Behaviour confirmed by running every input, not by reasoning about it:
+`"7"`, `"07"`, `"7 "` and `"  7  "` accepted; `""`, `"7abc"`, `"7.9"`, `"+7"`,
+`"7e0"` and `"0x7"` rejected.
