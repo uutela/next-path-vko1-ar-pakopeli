@@ -37,3 +37,11 @@ One line per thing noticed while working. Not implemented, not detoured into.
   a full cycle — `ar-panel.md` gained AC16, the test reproduces both behaviours
   so a frozen closure cannot hide, and `PuzzleScene` is now a module-level
   component fed through `viroAppProps`.
+- The web map loads its data but paints nothing. Probed: four requests to
+  `tiles.openfreemap.org` (style, planet, sprites) all succeed, zero failed
+  requests, and the canvas is 1280x664 with class `maplibregl-canvas` — but
+  `maplibre-gl`'s stylesheet is **not present** in the document. `Map.web.tsx`
+  says in its own comment that the web build "must also load maplibre-gl's
+  stylesheet … in the HTML shell", and nothing ever did. Same shape as the
+  `ArScreen.web.tsx` omission: an obligation written down and not enforced by
+  any criterion.

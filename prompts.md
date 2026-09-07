@@ -1151,3 +1151,61 @@ nothing.
 
 Everything else the run observed follows from that single failure — recorded
 in full in the report to the user rather than repeated here.
+
+### 57
+> No toihan tiedettiin
+
+> Ihmettelinkin miksi haluat playwrightlilla testata
+
+> Tee korjaus
+
+→ Both fair. The AR-not-on-web part was known and had been said. Two things
+were not: that `@reactvision/viro-web-renderer` **is not published at all**
+(404, so no install can fix it), and that one import therefore takes down the
+whole web bundle rather than only the AR screen. The earlier claim that "the
+browser covers the map half" was wrong, and this run is what showed it.
+
+On the tool: the course's step 7 assumes a web app, because Pasi's project was
+one. Ours is React Native with native AR. Following the instruction's tool
+instead of its purpose — run the app and see what actually happens — is why
+this started in a browser rather than a simulator.
+
+**The real fault was a spec violation, not a library surprise.**
+`specs/architecture.md` already said "the AR screen has no web implementation;
+on web the app shows the map and says so". `Map.tsx`/`Map.web.tsx` existed;
+`ArScreen.web.tsx` did not, and `AppShell` imported `ArScreen` unconditionally.
+No criterion covered the platform split, so nothing noticed. An architecture
+rule with no criterion is a comment.
+
+`ar-panel.md` gained AC17 and AC18, `ui-ux.md` gained the string, and
+`src/ui/ArScreen.web.tsx` imports no Viro.
+
+The first RED was the instrument's fault again: the test searched for the
+package name as a *substring*, so the doc comment in `ArScreen.web.tsx`
+explaining the rule matched it. The criterion says "files importing", and a
+comment is not an import, so the test now matches `from`/`require` forms.
+
+After the fix the web bundle builds — 3.5 MB, HTTP 200 — and the smoke run is
+all green:
+
+```
+PASS  app-shell AC1 attribution present
+PASS  app-shell AC1 no offer while far
+PASS  app-shell AC2 offer appears in range
+PASS  map-view a map canvas is rendered
+PASS  map-view the map canvas has area
+PASS  ar-panel AC18 web says where the puzzle opens
+PASS  ar-panel AC18 no keypad on web
+console errors: 0   page errors: 0
+```
+
+`networkidle` had to go from the script: map tiles and Metro's HMR socket keep
+the network busy, so it never settles.
+
+**But the screenshot shows a blank map**, and the checks above did not catch
+it — a canvas with area is not a canvas with a map on it. Probed rather than
+guessed: four requests to `tiles.openfreemap.org` all succeed, nothing fails,
+the canvas is 1280x664 with class `maplibregl-canvas`, and `maplibre-gl`'s
+stylesheet is absent from the document. `Map.web.tsx`'s own comment says the
+web build "must also load maplibre-gl's stylesheet … in the HTML shell", and
+nothing ever did. Filed in `INBOX.md`, not fixed.

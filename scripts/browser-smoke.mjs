@@ -39,11 +39,17 @@ page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text()));
 page.on('pageerror', (e) => pageErrors.push(e.message));
 
 console.log(`→ opening ${URL}`);
-const response = await page.goto(URL, { waitUntil: 'networkidle', timeout: 120_000 });
+// Not `networkidle`: map tiles and Metro's HMR socket keep the network busy,
+// so it never settles. Wait for the document, then for the app to paint.
+const response = await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 120_000 });
 console.log(`  HTTP ${response?.status()}`);
 
-// The bundle is built on first request; give it room before reading the DOM.
-await page.waitForTimeout(5_000);
+// The bundle is built on first request, and it is 3.5 MB.
+await page
+  .getByText('© OpenMapTiles Data from OpenStreetMap')
+  .waitFor({ timeout: 120_000 })
+  .catch(() => console.log('  (attribution never appeared)'));
+await page.waitForTimeout(3_000);
 await page.screenshot({ path: `${OUT}/01-loaded.png`, fullPage: true });
 
 const bodyText = await page.locator('body').innerText().catch(() => '');
@@ -65,16 +71,31 @@ await page.screenshot({ path: `${OUT}/02-near.png`, fullPage: true });
 const offers = await page.getByText('Avaa tehtävä').count();
 record('app-shell AC2 offer appears in range', 1, offers);
 
-// AC3 — opening the puzzle shows the AR screen.
+// map-view AC5/AC6 — the map itself, not just its attribution.
+const canvases = await page.locator('canvas').count();
+record('map-view a map canvas is rendered', true, canvases > 0);
+const canvasBox = canvases > 0 ? await page.locator('canvas').first().boundingBox() : null;
+record(
+  'map-view the map canvas has area',
+  true,
+  Boolean(canvasBox && canvasBox.width > 0 && canvasBox.height > 0),
+);
+
+// ar-panel AC18 — on web the AR screen says where the puzzle can be opened.
+// The puzzle itself is native-only: Viro does not run here, by the PRD.
 if (offers > 0) {
   console.log('→ clicking "Avaa tehtävä"');
   await page.getByText('Avaa tehtävä').first().click();
   await page.waitForTimeout(3_000);
-  await page.screenshot({ path: `${OUT}/03-puzzle.png`, fullPage: true });
-  const puzzle = await page.locator('text=/^\\d \\+ \\d = \\?$/').count();
-  record('app-shell AC3 puzzle text appears', true, puzzle === 1);
+  await page.screenshot({ path: `${OUT}/03-after-open.png`, fullPage: true });
+  record(
+    'ar-panel AC18 web says where the puzzle opens',
+    1,
+    await page.getByText('Tehtävä avataan puhelimen sovelluksessa.').count(),
+  );
+  record('ar-panel AC18 no keypad on web', 0, await page.getByText('OK', { exact: true }).count());
 } else {
-  record('app-shell AC3 puzzle text appears', true, 'not reached — no offer to click');
+  record('ar-panel AC18 web says where the puzzle opens', 1, 'not reached — no offer to click');
 }
 
 console.log('\n──────── results ────────');

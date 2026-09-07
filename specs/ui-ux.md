@@ -26,6 +26,7 @@ acceptance criteria assert, so they are settled here and nowhere else.
 | Camera denied | `Kamera tarvitaan tehtävän avaamiseen.` |
 | Reset control | `Aloita alusta` |
 | Map attribution | `© OpenMapTiles Data from OpenStreetMap` |
+| AR screen, on web | `Tehtävä avataan puhelimen sovelluksessa.` |
 
 Nothing is written for a wrong answer. The input simply empties, which is
 feedback enough and avoids a scolding tone in a game meant to be fun.
