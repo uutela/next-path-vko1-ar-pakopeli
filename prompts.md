@@ -1,20 +1,32 @@
 # prompts.md
 
-Every prompt of this project in order, as part of the next-path week 1
-exercise. Prompts are recorded as they were actually sent.
+Every message from the user that drove this project, in order and verbatim,
+as part of the next-path week 1 exercise. Answers chosen from a multiple
+choice prompt are marked as selections rather than typed text. A `→` line
+after each entry records what it changed.
+
+Course-step prompts are quoted in full. Nothing here is paraphrased.
 
 ---
 
-## Step 0 — harness
+## Before the work — establishing which rules apply
 
-No prompt. `AGENTS.md`, `CLAUDE.md` and `specs/TEMPLATE.md` were created
-directly. `specs/TEMPLATE.md` and the project-specific lines of
-`AGENTS.md` were finished during the session (see step 2b).
+### 1
+> Moi. Kenenn kanssa juttelen?
+
+→ The global `~/.claude/CLAUDE.md` on this machine defines an orchestrator
+persona and a team of named subagents. This repo's `CLAUDE.md` overrides all
+of it, so the answer was: no persona, no delegation, and the AGENTS.md
+workflows are the operating model here.
+
+### 2
+> Kiitos, kunhan tsekkasin :)
 
 ---
 
 ## Step 1 — research, no code, no spec
 
+### 3
 > Run the `research` workflow from @AGENTS.md — read-only, no code, no spec.
 >
 > Task: Tehdään MVP-toteutus mun toisia projekteja varten Augmented Reality
@@ -40,89 +52,234 @@ directly. `specs/TEMPLATE.md` and the project-specific lines of
 > enough that you had to guess. Ask me about the guesses — do not resolve
 > them yourself.
 
-The model reported an approach and asked about its guesses instead of
-resolving them. Open questions raised: AR level, admin model, web target,
-map tile licensing, number of points, persistence, demo location, what
-"the box opens" means, and leftover conventions in `AGENTS.md`.
+→ Findings reported and every guess raised as a question instead of being
+resolved: AR level, admin model, web target, map tile licensing, number of
+points, persistence, demo location, what "the box opens" means, and leftover
+conventions in `AGENTS.md` that belonged to a different project.
 
 ---
 
 ## Step 2 — decisions
 
-Answered across several messages rather than one line. Consolidated:
+### 4 — selections
+> Mitä "AR" tarkoittaa MVP1:ssä?
+> **Haluan tuon vaihtoehdon 2 vaikka se ei varmaan ole mahdollinen react
+> native web-toteutuksessa**
+>
+> Miten pisteitä ylläpidetään MVP1:ssä? — **Molemmat**
+>
+> Onko web-versio oikea vaatimus vai bonus? — **Bonus — mobiili ratkaisee**
+>
+> Saako karttalaatat hakea ilmaisen tason pilvipalvelusta, joka vaatii tilin
+> ja API-avaimen? — **OSM pitäisi olla ok eikä tarvii tiliä tai API-avainta**
 
-> World-anchored AR, not a camera overlay — accepting that React Native Web
-> cannot do it. The keypad is inside the anchored panel and is pressable.
-> Points are maintained both as a file in the repo and through an in-app
-> editor. Web is a bonus, mobile decides. Map tiles must need no account and
-> no API key. This MVP is our product, not a reusable building block — later
-> projects copy from this repo rather than import it. One point and one
-> puzzle in MVP1. The demo is outdoors on real GPS; mocking is a development
-> and testing tool only. If the week runs short, the in-app editor is cut
-> first and anchored AR survives. Solving shows a congratulation text and
-> plays a fanfare.
+→ World-anchored AR chosen over a camera overlay, accepting that React Native
+Web cannot do it. The OSM answer contained a conflict worth raising rather
+than resolving: OSM *data* is free, but the OSM Foundation's tile server
+forbids app use, so "OSM without an account" does not by itself name a tile
+source.
 
-### Tech stack proposed by the user, verified and accepted
+### 5
+> Numeronäppäimet ovat laatikkossa ja niitä voi painaa :)
 
-> - Kirjasto: @maplibre/maplibre-react-native (natiivi) ja maplibre-gl +
->   react-map-gl (web)
-> - Tiilet: https://tiles.openfreemap.org/styles/liberty — vektoritiilet
-> - OpenFreeMap on ilmainen, ei API-avainta, ei rajoituksia — data OSM:stä
+→ The panel and keypad are one anchored object; pressing means touching the
+screen where the key appears. An earlier caution about 3D hit-testing being
+awkward was withdrawn — this is the ordinary pattern in AR toolkits.
 
-Verified: `@maplibre/maplibre-react-native` MIT, `maplibre-gl` BSD,
-`react-map-gl` MIT. OpenFreeMap requires no API key, states no request
-limits, and permits commercial use; attribution `© OpenMapTiles` +
-`Data from OpenStreetMap` is mandatory. No SLA — single operator, donation
-funded; self-hosting is the escape hatch and the style URL is kept in one
-place so switching stays a one-line change.
+### 6
+> ja tämä MVP on silti nyt meidän tuote. Enemmän tätä käytettäisiin et kato
+> tästä reposta mallia, kuin että tarvii olla joku uudelleen käytettävä
+> palikka
 
-An earlier suggestion of CARTO was rejected: its tile service requires an
-API key and a commercial agreement, which fails the no-account constraint.
-Its *style* is separately licensed (BSD-3 code, CC-BY 4.0 design) and may be
+→ A correction to the research report, which had claimed the most important
+user was "you in later projects" and that the pipeline should be isolated for
+reuse. Reversed: optimise for readability as an example, not extensibility.
+No plugin architecture, no package boundaries, no abstractions the MVP does
+not need itself.
+
+### 7
+> Leaflet ja carto?
+
+→ Verified rather than answered from memory. Leaflet is BSD-2 and fine, but
+needs a WebView in React Native, and it is a map *library*, not a tile source.
+CARTO fails the no-account constraint: its docs describe a free API key with a
+5M request fair-use limit and a commercial agreement above it, while its own
+`basemap-styles` repo is stricter — "access to CARTO's basemap tile services
+is restricted to CARTO enterprise customers and Non-Profit GRANTS only". Its
+*style* is separately licensed (BSD-3 code, CC-BY 4.0 design) and may be
 reused with self-hosted tiles.
 
-### Late step 2 decisions
+### 8
+> muistin vasta että carto nykyään vaatii avaimen. Miten olisi:
+> - Kirjasto: @maplibre/maplibre-react-native (natiivi) ja maplibre-gl +
+>   react-map-gl (web)
+> - Tiilet: https://tiles.openfreemap.org/styles/liberty — vektoritiilet,
+>   Map.tsx:13 ja Map.web.tsx:16
+> - OpenFreeMap on ilmainen, ei API-avainta, ei rajoituksia — data OSM:stä
 
-- Trigger radius: **20 m**, to tolerate GPS drift outdoors.
-- The arithmetic puzzle is **randomly generated**, not fixed. Randomness is
-  injected — `generatePuzzle(rng: () => number)` — so the function stays pure
-  and acceptance criteria can state a precise expected value.
-- Difficulty: **two operands, each 1–9**, so the answer is 2–18.
+→ Accepted after verification, and better than anything proposed before it.
+`@maplibre/maplibre-react-native` MIT, `maplibre-gl` BSD, `react-map-gl` MIT
+with first-class MapLibre support via `react-map-gl/maplibre`. OpenFreeMap
+confirmed: no API key, no registration, no request limits, commercial use
+explicitly permitted, MIT software, OSM data. Attribution `© OpenMapTiles` +
+`Data from OpenStreetMap` is mandatory. The one caveat found and recorded: a
+single operator, donation funded, explicitly no SLA — so the style URL is kept
+in one shared constant, making a switch to self-hosted tiles a one-line change.
 
-### Step 2b — harness finished during the session
+### 9
+> joo, unohda tiedostot.. Oli copy paste sielät mistä myöhemmin halutaan tätä
+> protoa hyväksikäyttää :)
 
-`specs/TEMPLATE.md` was created, plus a `Status: Draft | In Progress | Done`
-field so the `develop` workflow has somewhere to record status.
+→ `Map.tsx:13` and `Map.web.tsx:16` referred to another project, not this
+repo, which had no source files at all.
 
-`AGENTS.md` was written for a different project ("briefing", git log,
-calendar, notes). Those leftovers were removed and replaced:
+### 10 — selections
+> Missä tätä testataan ja demotaan? — *Sisällä valesijainnilla*
+>
+> Jos viikko loppuu kesken, mistä tingitään ensin? — **Sovelluksen editori
+> putoaa**
+>
+> Montako pistettä ja tehtävää MVP1:ssä? — **Yksi piste, yksi tehtävä**
 
-- `Interfaces for every data structure; type only for unions`
-- `Each source (GPS, camera, point storage) lives behind its own adapter …`
-- `User-facing text is Finnish; identifiers, comments and commit messages
-  are English`
-- Guardrail: `The player's location never leaves the device — no analytics,
-  no remote logging, no third party`
+### 11
+> unohda kysymyksen 1 jutut.. ei katsota sinne
 
-`What this is` was rewritten: the earlier text called this a building block
-for other projects, which the step 2 decisions had reversed.
+### 12
+> demotaan ulkona oikealla gps:llä.. mut sinä voi mockata sitä tai käyttää
+> jotain kirjastoja testaukseen
+
+→ Overrides the selection in 10. The demo runs outdoors on real GPS; mocking
+is a development and testing tool, never the demo. This raised two field-only
+risks that no desk test can cover: GPS drift against the radius, and ARKit /
+ARCore surface tracking in bright sun on plain asphalt or grass.
+
+### 13
+> 2. teksti vaihtuu onnittelutekstiksi ja joku fanfaari soi.. mitä itse olet
+> mieltä kohdasta 1?
+
+→ Success behaviour settled. On persistence, the recommendation given was that
+the question is really two: solved progress should **not** persist, because
+solving a point during a field test would leave it solved for the demo; points
+created in the editor **must** persist, or the editor is a demo rather than a
+tool. A reset button is worth more than persistence for a repeated walk-through.
+
+---
+
+## Step 2b — the harness, finished mid-session
+
+### 14
+> Aijoo, tehdään tollainen specs template: specs/TEMPLATE.md. Speksin pohja.
+> Tekoäly täyttää sen askeleessa 4.
+>
+> *(followed by the full template text from the course)*
+
+→ Written verbatim. One gap flagged rather than silently fixed: `AGENTS.md`'s
+`develop` workflow requires a spec status of Draft → In Progress → Done, but
+the template had nowhere to record it.
+
+### 15
+> Nää oli turhia tuolla agents.MD:  Each source (git log, calendar, notes, ...)
+> lives behind its own adapter returning a plain typed record — collecting,
+> ranking and rendering never touch a source directly
+> - Ranking ("what matters most today") is a pure function of the
+>   collected records: same input, same briefing, no clock or network
+>   reads inside it
+> - The briefing text the user reads is Finnish; identifiers, comments
+>   and commit messages are English
+
+→ Removed as asked. Two of the three carried principles this project actually
+relies on, and replacements were offered rather than assumed: the adapter
+boundary, and the language rule.
+
+### 16
+> ja sit tuolla agents.md:ssä voisi olla coding kohdassa: interfaces for every
+> data structure
+
+→ Added. One conflict raised: the game state machine is a discriminated union,
+which TypeScript cannot express with `interface`, so the rule as written would
+have forbidden the design already agreed.
+
+### 17
+> ja hei noi ehdotuksesi siis hyvät coding kohtaan
+
+→ All three applied: `Interfaces for every data structure; type only for
+unions`, the adapter rule rewritten for GPS, camera and point storage, and
+`User-facing text is Finnish; identifiers, comments and commit messages are
+English`.
+
+### 18
+> ok
+
+→ Guardrails cleaned of the same leftovers and replaced with one rule that
+matters here: `The player's location never leaves the device — no analytics,
+no remote logging, no third party`.
+
+### 19
+> arvo satunnaisesti jos siihen saat jonkun funktion.. ei liian vaikea :)
+
+→ Random puzzle generation. The design point raised: randomness must be
+injected — `generatePuzzle(rng: () => number)` — or the function is impure and
+no acceptance criterion could ever state an exact expected value.
+
+### 20
+> 20m ok
+
+→ Trigger radius 20 m, sized for GPS drift rather than precision.
+
+### 21
+> sopii
+
+→ Difficulty: two operands, each 1–9, so the answer is 2–18.
+
+### 22
+> what this is osio on nyt hyvä
+
+→ `AGENTS.md`'s "What this is" had been left saying this repo was a building
+block for other projects, which message 6 had reversed. Rewritten to say what
+the app does, for whom, and what "working" means: outdoors, on a real phone,
+with real GPS, one point, one puzzle, end to end.
+
+### 23
+> pitäisikö tehdä commit
+
+### 24
+> Nämä ok.. ja saa olla public myös mun uutela githubissa
+
+→ `git init`, a `.gitignore` written before any dependency existed so
+`node_modules` could never enter history, first commit, and a public repo at
+github.com/uutela/next-path-vko1-ar-pakopeli.
 
 ---
 
 ## Step 3 — PRD
 
-> Write the PRD in specs/PRD.md: goal, users, the decisions I just made, and
-> explicit non-goals. One page. Do not use the feature template yet.
+### 25
+> Askel 3: Eli mun prompti sulle: Write the PRD in specs/PRD.md: goal, users,
+> the decisions I just made, and explicit non-goals. One page. Do not use the
+> feature template yet.
 
-Written as `specs/PRD.md`. No new decisions were introduced — the document
-only records what steps 1 and 2 settled, and states the non-goals explicitly
-so that later feature specs cannot quietly expand the scope.
+→ `specs/PRD.md`. No new decisions introduced; twelve non-goals stated
+explicitly so later feature specs cannot quietly expand the scope.
+
+### 26
+> PRD OK.. tee commit ja push
+
+### 27
+> Ollaan nyt mielesteäni tehty tämä steppi: 3) Vaatimusdokumentti eli PRD,
+> yksi sivu (10 min) *(followed by the course material for step 3)*
+
+→ Confirmed done. The course's warning — that the model tried to bring the
+non-goals back in step 5 — was noted in advance, with the four most likely
+returns named: a backend, a PIN on the admin view, crash reporting, and
+persisted progress.
 
 ---
 
 ## Step 4 — feature specs
 
-> Write the spec for the features of the app.
+### 28
+> jes, jatketaan steppiin 4. Tässä minun prompti: Write the spec for the
+> features of the app.
 >
 > Ground it in the research pass findings and specs/PRD.md. Write
 > specs/features/«feature».md for each feature using specs/TEMPLATE.md.
@@ -133,124 +290,158 @@ so that later feature specs cannot quietly expand the scope.
 >
 > Then run the Spec Readiness checklist and show the result item by item.
 
-Six specs in `specs/features/`, split along the architecture: three pure
-domain features (`proximity`, `puzzle`, `game-state`), one storage feature
-(`points-store`) and two views (`map-view`, `ar-panel`). 67 acceptance
-criteria and 77 test rows.
+→ Six specs split along the architecture: three pure domain features
+(`proximity`, `puzzle`, `game-state`), one storage feature (`points-store`)
+and two views (`map-view`, `ar-panel`). The haversine values in
+`proximity.md` were computed before writing rather than estimated, so
+`60.1700798643` is provably 20.000000 m from the reference point. One question
+was left open rather than resolved silently: the keypad had no clear key, so a
+mistyped digit could only be recovered by spending a wrong answer.
 
-The haversine values in `proximity.md` were computed before writing, not
-estimated, so `60.1700798643` is provably 20.000000 m from the reference
-point.
-
-One question was left open in `ar-panel.md` rather than resolved silently:
-the keypad had no clear key, so a mistyped digit could only be recovered by
-spending a wrong answer.
-
-### Decision
-
+### 29
 > tehdään c-näppäin
 
-The keypad is now twelve keys — `0`–`9`, `C` and `OK`. `CLEAR` was added to
-`GameEvent`; `ar-panel.md` gained AC13 and AC14, and `game-state.md` gained
-AC15, which pins that clearing keeps the same operands rather than drawing a
-fresh puzzle.
+→ Twelve keys: `0`–`9`, `C` and `OK`. `CLEAR` added to `GameEvent`;
+`ar-panel.md` gained AC13 and AC14, `game-state.md` gained AC15, which pins
+that clearing keeps the same operands rather than drawing a fresh puzzle.
 
-### Fanfare
-
+### 30
 > voisiko fanfare olla joku tietokoneellsiesti generoit wav, jonka teet?
 
-Yes, and it is the better answer: a synthesised asset has no third-party
-licence at all, rather than a permissive one that has to be verified and
-recorded. `scripts/generate-fanfare.mjs` writes `assets/fanfare.wav` from a
-score held in source — C–E–G rising, then a held C major chord, 1.45 s, mono
-44.1 kHz 16-bit PCM, no dependencies.
+→ A better answer than sourcing one: a synthesised asset has no third-party
+licence at all. `scripts/generate-fanfare.mjs` writes `assets/fanfare.wav`
+from a score held in source — C–E–G rising, then a held C major chord, 1.45 s,
+mono 44.1 kHz 16-bit PCM, no dependencies. Checked before use: peak 0.8900
+with no clipped samples, DC offset 0.000001, first and last sample exactly 0
+so it neither clicks in nor out.
 
-Checked before use: peak 0.8900 with no clipped samples, DC offset 0.000001,
-and both the first and last sample exactly 0 so it neither clicks in nor out.
+### 31
+> fanfare.wav ok
 
-`specs/features/ar-panel.md` and `specs/PRD.md` were updated: the fanfare is
-no longer listed as a licence risk, because it no longer is one.
+### 32
+> mielestäni kriteerit ok. Vaikka ei niitä nyt ihan kaikki pystynyt lukemaan.
+> Tällainen oli ohje ja siinä on lopussa ohje että pitää etsiä joku kriteeri
+> joka on vaikka vain "toimii" ja siihen pitäisi miettiä kunnon mitattava
+> arvo. Voitko auttaa sellaisen etsinnässä?
+> *(followed by the course material for step 4)*
 
-### Readiness exercise: find a criterion that only promises "it works"
+→ The first search was too narrow: it looked for exact phrases like "works
+correctly" and found nothing but the checklist line itself. Searching for
+vague **promises** rather than vague **words** found three.
 
-The step 4 instructions end with a task for the human: find an acceptance
-criterion that says "correct", "sensible" or "works", and rewrite it with a
-precise, measurable value. The first search was too narrow — it looked for
-exact phrases like "works correctly" and found nothing but the checklist line
-itself. Searching for vague *promises* rather than vague *words* found three.
+**1. `map-view.md` AC4** — "present and it is **not hidden**". A test cannot
+branch on "not hidden". Now: computed `fontSize` at least 11, `opacity` at
+least 0.8, `display` not `none`.
 
-**1. `map-view.md` AC4** — "exactly one node with that text is present and it
-is **not hidden**". A test cannot branch on "not hidden". Now: the node's
-computed `fontSize` is at least 11, its `opacity` at least 0.8, and its
-`display` is not `none`.
+**2. `map-view.md` AC6** — "**the map itself still renders**". Now: the map
+container is present with a measured width and height both greater than 0.
 
-**2. `map-view.md` AC6** — "zero markers are present, **the map itself still
-renders**". Now: the map container is present with a measured width and
-height both greater than 0.
-
-**3. `ar-panel.md`** — the best find, because it was not a weak AC but a
-missing one. "Whether the keys are large enough to hit at arm's length" sat in
-the Risk section as a field-only concern, which in practice means nobody
+**3. `ar-panel.md`** — the best find, because it was not a weak criterion but
+a missing one. "Whether the keys are large enough to hit at arm's length" sat
+in the Risk section as a field-only concern, which in practice means nobody
 checks it until the demo — and a touch target too small to hit outdoors, with
-a shaking hand in bright sun, is exactly how an AR demo fails. "Large enough"
-also has a settled measurable value. It is now AC15: every one of the twelve
-keys has a touch target of at least 48 x 48 points, and adjacent key centres
-are at least 56 points apart. The risk section records that key size was moved
-from the field onto the desk.
+a shaking hand in bright sun, is exactly how an AR demo fails. Now AC15: every
+one of the twelve keys at least 48 x 48 points, adjacent centres at least 56
+points apart.
 
-Specs now hold 68 acceptance criteria across six files.
+### 33
+> tehdäänkö eka commit + push, sitten tämä muutos ja commit
+
+→ Nothing to commit — the working tree was already clean and pushed.
+
+### 34
+> ja sit pitääkö promt.md:hen lisätä jotain tästä miten ollaan työskennelty?
+
+→ Yes; the readiness exercise is part of the step 4 instructions, not a
+side note.
+
+### 35
+> onko jotain committtoimatta / pushaamatta?
+
+→ Nothing. 14 files on disk, 14 tracked, working tree clean, `main` in sync.
 
 ---
 
 ## Step 5 — architecture, UI/UX, tech stack, and the scaffold
 
-> Write architecture, ui/ux and tech stack specs into specs/. Focus on
-> simplicity and being able to quickly develop an MVP. Stay inside the
-> PRD non-goals. One page each.
+### 36
+> Nyt olisi vaihe 5. Minua vähän jännittää, koska olen käyttänyt koko
+> tehtävästä jutusta termiä MVP (ehkä MVP1?), ja täsäs promptissa on myös
+> käytetty termiä MVP: Write architecture, ui/ux and tech stack specs into
+> specs/. Focus on simplicity and being able to quickly develop an MVP. Stay
+> inside the PRD non-goals: «yksi laite, ei tunnuksia, ei tietokantaa, tms.».
+> One page each.
 >
 > Then scaffold the project according to the tech stack spec: install
 > what is needed, make the commands in @AGENTS.md real, and run `npm test`
 > with no tests yet. It must pass green. Show the output.
 
-The course warned that this is the step where a model tries to bring the
-non-goals back. Named in advance as most at risk: a backend "for syncing", a
-PIN "to protect the admin view", crash reporting "as good practice", and
-persisting progress "because it is trivial". None were added; `tech-stack.md`
-lists them under **Deliberately not used** with the reason.
+→ No terminology conflict: the prompt's "MVP" is an adjective meaning keep it
+simple; `MVP1` is our named scope. But one sentence in it is genuinely
+dangerous — "focus on simplicity" can read as licence to reverse the one
+decision that was deliberately *not* the simplest, world-anchored AR. It
+stayed, per the PRD.
 
-The opposite trap also applies here and is easier to miss. "Focus on
-simplicity" can read as licence to reverse a decision that was deliberately
-*not* the simplest — world-anchored AR. It stays, per the PRD.
+The prompt still carried Pasi's non-goals as a placeholder; ours were used.
 
-### Scaffold
+The course warned this is where a model brings the non-goals back. The four
+named in advance — a backend for syncing, a PIN on the admin view, crash
+reporting as good practice, persisted progress because it is trivial — none
+were added. `tech-stack.md` lists them under **Deliberately not used** with
+the reason.
 
-Expo SDK 57, React Native 0.86, React 19, TypeScript 7 strict, Vitest 5.
-MapLibre and Viro are deliberately not installed yet: both need a custom dev
-build and a config plugin, and installing them before any code uses them would
-let a native install failure block the harness.
+**Scaffold:** Expo SDK 57, React Native 0.86, React 19, TypeScript 7 strict,
+Vitest 5. MapLibre and Viro deliberately not installed yet: both need a custom
+dev build and a config plugin, and installing them before any code uses them
+would let a native install failure block the harness. This is an interpretation
+of "install what is needed", not a literal reading of it.
 
 Two things worth recording:
 
 - `"type": "module"` in `package.json` breaks Metro's resolution, but without
   it Vitest warns that its ESM config is loaded as CommonJS. Resolved by
   dropping the field and naming the config `vitest.config.mts`.
-- `passWithNoTests: true` is set so the harness can be verified green before
+- `passWithNoTests: true` is set so the harness could be verified green before
   any test exists. It must be removed once the first real test lands in step
   6, or a broken include glob would pass silently.
-
-### Command output
 
 ```
 $ npm test
  RUN  v5.0.0 /Users/null/Projects/next-path-vko1-ar-pakopeli
-No test files found, exiting with code 0
-include: src/**/*.test.ts, src/**/*.test.tsx
-exit 0
+ No test files found, exiting with code 0
+ include: src/**/*.test.ts, src/**/*.test.tsx
+ exit 0
 
 $ npx tsc --noEmit
-exit 0
+ exit 0
 
 $ npm start
-Starting Metro Bundler / Waiting on http://localhost:8099
-GET /status -> HTTP 200, packager-status:running
+ Starting Metro Bundler / Waiting on http://localhost:8099
+ GET /status -> HTTP 200, packager-status:running
 ```
+
+### 37
+> hetkonen, mistä tiedät nämä askeleet etukäteen?
+
+→ From the step-3 message, which included the course's table of all nine steps
+and their artifacts. The step titles come from that table; the prompt text for
+each step arrives only when it is given.
+
+### 38
+> Ahaa, selvä :)
+
+### 39
+> *(course material for step 5)* Tehtiinkö sen mukaan ja onko meidän prompit
+> siellä md:ssä?
+
+→ Step 5 yes, with the one documented deviation above. The prompts, only
+partly: the course-step prompts were verbatim, but the conversational
+decisions had been consolidated into prose. Of eleven sampled messages, eight
+were missing as written — "Leaflet ja carto?", "20m ok", "sopii" and others
+existed only as summarised outcomes. That was a choice made without asking.
+
+### 40
+> Korjaa vaan
+
+→ This file rewritten so every message appears verbatim and in order, with the
+earlier summaries kept as the `→` commentary beside each.
