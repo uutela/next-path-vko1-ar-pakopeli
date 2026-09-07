@@ -561,3 +561,37 @@ refactoring.
 
 `passWithNoTests: true` removed from `vitest.config.mts`, as planned in step 5
 — the first real test now exists, so the guard would only hide a broken glob.
+
+### 43 — same prompt, AC2
+
+**proximity AC2 — a known 20 m north offset measures 20 m**
+
+RED. Only the test was added; the implementation was left at `return 0`.
+
+```
+FAIL  src/domain/distance.test.ts > distanceMeters > AC2: a known 20 m north offset measures 20 m
+AssertionError: expected 20 to be less than or equal to 0.01
+Tests  1 failed | 1 passed (2)
+```
+
+The error is the whole distance: `return 0` cannot produce one, which is
+precisely the missing behaviour. AC1 stayed green.
+
+GREEN. This is the criterion that forces the haversine formula out, as the
+AC1 cycle predicted. Mean earth radius 6371000 m, extracted as a named
+constant, with `toRadians` as a helper.
+
+```
+Test Files  1 passed (1)
+     Tests  2 passed (2)
+exit 0
+```
+
+The implementation returns 19.999997645 m for AC2's coordinates — inside the
+0.01 m tolerance the spec names — and exactly `0` for AC1, which matters
+because AC1 asserts strict equality with `toBe(0)`. It holds because
+`sin(0)` is 0 and `asin(0)` is 0, so no floating point residue accumulates.
+
+REFACTOR: nothing done. The radius is a named constant, `toRadians` is
+extracted, and the variable names come from the spec. There is no duplication
+to remove after two tests.
