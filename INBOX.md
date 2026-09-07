@@ -22,3 +22,7 @@ One line per thing noticed while working. Not implemented, not detoured into.
   running each input. Only this app writes the key, so the shape can only be
   wrong if a future version changes it — which is exactly when it would hurt.
   Fixing it means a validating criterion in `points-store.md` first.
+- The map has no `Camera`, so it does not centre on the player or on any
+  point. No criterion in `map-view.md` asks for centring, so it was left out
+  under the smallest-implementation rule — but a map that never centres is not
+  usable in the field. Needs a criterion before it is added.
