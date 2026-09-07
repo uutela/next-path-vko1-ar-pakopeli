@@ -1111,3 +1111,43 @@ every render.
 
 Verified by breaking: dropping the subscription cleanup turns AC6 red alone,
 and returning the seed instead of the merge turns AC5 red alone.
+
+---
+
+## Step 7 — run the app and walk through it in a browser
+
+### 56
+> aloitetaan
+
+> Start the app. If the port is already in use, pick another one and tell me
+> the URL you actually used.
+>
+> Then use the browser tool to walk through AC«N» as a user would: click,
+> type, read the screen, take a screenshot.
+>
+> Report exactly what you did and what you saw — inputs and outputs. List
+> every difference from the AC. Do not fix anything yet.
+
+Playwright 1.63.0 as a dev dependency plus `scripts/browser-smoke.mjs`, since
+no Playwright MCP is configured here and the course's own step 7 artifact is a
+script. Port 8081 was free, so the URL is **http://localhost:8081**.
+
+The web build does not compile. Nothing was fixed, per the prompt.
+
+```
+UnableToResolveError: Unable to resolve module @reactvision/viro-web-renderer
+from node_modules/@reactvision/react-viro/dist/components/ViroAmbientLight.web.js
+```
+
+`@reactvision/react-viro` declares `@reactvision/viro-web-renderer` as a peer
+dependency, and **that package is not published** — `npm view` returns 404. So
+Viro's web build cannot be completed by installing anything.
+
+`AppShell` imports `ArScreen` unconditionally, `ArScreen` imports Viro, and
+Metro resolves Viro's `.web.js` files on web. One import therefore takes down
+the entire web bundle, including the map screen, which has no Viro in it at
+all. The PRD said web would have no anchored AR; it did not say web would have
+nothing.
+
+Everything else the run observed follows from that single failure — recorded
+in full in the report to the user rather than repeated here.
