@@ -1251,3 +1251,41 @@ simulator build.
 So the Appium-in-the-simulator plan does not work either, and it is Viro's
 constraint rather than ARKit's. Every native run needs a physical device.
 Xcode can see three connected already.
+
+### 59
+*In reply to: which connected device to build for*
+
+> リンゴ17P.
+
+> latautui laitteella. punaien piste näkyy helsingin keskustassa
+
+→ **The app runs on a real phone.** iPhone 17 Pro (iPhone18,1), signed with
+the existing Apple Development identity, built in about two minutes:
+
+```
+› Build Succeeded
+› 0 error(s), and 1 warning(s)
+› Installing … ARPakopeli.app  ✔ Complete 100%
+iOS Bundled 3264ms node_modules/expo/AppEntry.js (938 modules)
+ LOG   VRTMaterialManager lookup: FOUND
+ WARN  MapLibre Native … Invalid geometry in line layer
+```
+
+`VRTMaterialManager lookup: FOUND` is the line that matters: Viro's native
+module loaded. Without the Podfile patch there would have been no Viro in the
+binary at all, so the patch was necessary rather than cosmetic. The user
+confirms a red marker in central Helsinki — the seed point at Senaatintori,
+60.1699 / 24.9384 — so MapLibre renders tiles and places the marker from
+`src/data/points.json` correctly on the device.
+
+Two warnings recorded rather than chased:
+- `ViroKit … built for newer version 17.6` while building for iOS 16.4 — a
+  deployment-target mismatch in Viro's prebuilt binary
+- `Invalid geometry in line layer` from MapLibre, originating in OpenFreeMap's
+  tile data rather than in this code
+
+**What is now proven natively:** the build, Viro's native module, MapLibre
+rendering, and the marker's position. **What is not yet exercised:** every
+criterion past the `MAP` state, because `MAP → NEAR` needs the player within
+20 m of the seed point. That is the next session's work — either move the seed
+point to where the phone is, or walk to Senaatintori.
