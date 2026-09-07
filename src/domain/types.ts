@@ -11,3 +11,10 @@ export interface EscapePoint {
   coordinates: Coordinates;
   radiusMeters: number;
 }
+
+/** One arithmetic task: two operands and the sum they add up to. */
+export interface Puzzle {
+  left: number;
+  right: number;
+  answer: number;
+}
