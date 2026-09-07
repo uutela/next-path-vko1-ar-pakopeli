@@ -12,5 +12,7 @@ One line per thing noticed while working. Not implemented, not detoured into.
 - ~~RESOLVED~~ `checkAnswer` used `parseInt`, which stops at the first non-digit, so
   `"7abc"`, `"7.9"`, `"+7"` and `"7e0"` all count as 7. No criterion covers
   these and the keypad cannot produce them — `appendDigit` only ever appends
-  `0`-`9`. It matters only if the function is called from somewhere else, which
-  nothing does today.
+  `0`-`9`. Resolved by hardening rather than closing: the spec gained AC13
+  first, then the tests, then the implementation. The reason is the PRD —
+  later projects read this repo as an example, and a domain function that
+  silently accepts `"7abc"` is a worse example than one that does not.
