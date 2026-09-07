@@ -19,9 +19,24 @@ A pure merge function plus one adapter.
   stored points whose `id` is not in the seed. Result sorted by `id` so the
   order is deterministic.
 
-`src/adapters/pointStore.ts` — the only module that touches device storage:
-- `loadStoredPoints(): Promise<EscapePoint[]>`
-- `saveStoredPoints(points: EscapePoint[]): Promise<void>`
+`src/adapters/pointStore.ts` — the only module that touches device storage.
+It is a factory over a minimal key-value interface rather than a pair of free
+functions, so tests pass an in-memory fake and production passes AsyncStorage:
+
+- `createPointStore(storage: KeyValueStore): PointStore`
+- `PointStore.loadStoredPoints(): Promise<EscapePoint[]>`
+- `PointStore.saveStoredPoints(points: EscapePoint[]): Promise<void>`
+
+`KeyValueStore` is `{ getItem(key): Promise<string | null>; setItem(key, value): Promise<void> }`
+— the subset of AsyncStorage this adapter needs. Depending on the subset
+rather than the package means the tests do not need AsyncStorage installed,
+which matters because `specs/tech-stack.md` defers installing it until the
+code that uses it is written.
+
+An earlier version of this spec named the two functions as free exports with
+no storage argument. That cannot be tested against a fake without mocking the
+AsyncStorage module, which would have forced the package to be installed for
+the sake of the tests alone.
 
 `src/data/points.json` holds the seed. Solved state is never written by
 either function: it lives only in `GameState`, in memory.
@@ -85,7 +100,7 @@ Throughout, `SEED_A` is `{ id: "p1", name: "Puisto", coordinates: { latitude: 60
 |---|---|
 | `src/domain/points.ts` | New. `mergePoints` |
 | `src/domain/points.test.ts` | New. AC1–AC6 |
-| `src/adapters/pointStore.ts` | New. `loadStoredPoints`, `saveStoredPoints`, and the corrupt-data fallback |
+| `src/adapters/pointStore.ts` | New. `KeyValueStore`, `createPointStore`, and the corrupt-data fallback |
 | `src/adapters/pointStore.test.ts` | New. AC7–AC10 against an in-memory fake of the storage API |
 | `src/data/points.json` | New. The seed point for the demo location |
 

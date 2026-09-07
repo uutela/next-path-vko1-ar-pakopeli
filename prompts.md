@@ -828,3 +828,57 @@ when the player drifts out of range (AC5), a solved point stays solved
 (AC12). Those are the ones that would show up on a phone as a panel that
 flickers shut mid-answer, and they are the reason the state machine is a pure
 function rather than logic spread across screens.
+
+### 49 — same prompt, points-store.md
+
+> jatketaan
+
+**points-store — AC1 to AC10, plus one row from the testing strategy**
+
+**The spec was corrected before any test was written.** It named
+`loadStoredPoints` and `saveStoredPoints` as free exports taking no storage
+argument, which cannot be tested against a fake without mocking the
+AsyncStorage module — and that would have forced the package to be installed
+purely for the tests, contradicting the deferral recorded in
+`specs/tech-stack.md`. The adapter is now a factory over a minimal
+`KeyValueStore` interface: `{ getItem, setItem }`, the subset of AsyncStorage
+this needs. Production passes AsyncStorage, tests pass an in-memory object,
+and neither the adapter nor the suite depends on the package.
+
+RED. Eleven tests against two stubs.
+
+```
+× AC7, AC8, AC9, AC7, AC10   Error: createPointStore is not implemented
+× AC1 … AC6                  Error: mergePoints is not implemented
+Failed Tests 11
+```
+
+GREEN. `mergePoints` builds a `Map` keyed by id — seed first, stored second,
+so a stored point with the same id wins — and sorts by id on the way out.
+`createPointStore` writes exactly the four fields of an `EscapePoint`, which
+is what keeps solved progress out of storage **by construction** rather than
+by remembering not to write it.
+
+```
+Test Files  5 passed (5)
+     Tests  58 passed (58)
+exit 0
+```
+
+REFACTOR: nothing. No duplication between the two modules.
+
+Two things checked by running rather than assuming:
+
+**AC10 can actually fail.** The earlier AC6 episode was a criterion that could
+not fail for the reason it claimed, so this one was verified the same way:
+with the field-stripping removed, AC10 goes red and everything else stays
+green. It is testing what it says it tests.
+
+**A gap, filed in `INBOX.md` rather than fixed.** `loadStoredPoints` guards
+against unparseable JSON and against JSON that is not an array, but not
+against an array of the wrong shape — `[{"foo":1}]` and `[null]` come back as
+if they were points. Only this app writes the key, so the shape can only be
+wrong if a future version changes it, which is exactly when it would hurt.
+
+With this, all four pure domain specs are green: 58 tests across
+`distance`, `puzzle`, `gameState` and `points`. The two UI specs remain.

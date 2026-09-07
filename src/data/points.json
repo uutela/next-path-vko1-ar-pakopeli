@@ -1,0 +1,8 @@
+[
+  {
+    "id": "p1",
+    "name": "Senaatintori",
+    "coordinates": { "latitude": 60.1699, "longitude": 24.9384 },
+    "radiusMeters": 20
+  }
+]
