@@ -70,6 +70,22 @@ describe('checkAnswer', () => {
   it('AC6: surrounding whitespace is ignored', () => {
     expect(checkAnswer(PUZZLE, '7 ')).toBe(true);
   });
+
+  it('AC13: trailing letters are rejected', () => {
+    expect(checkAnswer(PUZZLE, '7abc')).toBe(false);
+  });
+
+  it('AC13: a decimal point is rejected', () => {
+    expect(checkAnswer(PUZZLE, '7.9')).toBe(false);
+  });
+
+  it('AC13: a leading sign is rejected', () => {
+    expect(checkAnswer(PUZZLE, '+7')).toBe(false);
+  });
+
+  it('AC13: exponent notation is rejected', () => {
+    expect(checkAnswer(PUZZLE, '7e0')).toBe(false);
+  });
 });
 
 describe('appendDigit', () => {

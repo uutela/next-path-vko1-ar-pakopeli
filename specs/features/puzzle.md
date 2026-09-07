@@ -84,6 +84,21 @@ scripted sequence. Randomness is injected, never taken.
 **When** `appendDigit(input, "3")` is called
 **Then** it returns `"12"` unchanged
 
+### AC13: Input containing anything but digits is rejected
+**Given** `puzzle = { left: 5, right: 2, answer: 7 }`
+**When** `checkAnswer(puzzle, "7abc")` is called
+**Then** it returns `false`
+
+The same holds for `"7.9"`, `"+7"` and `"7e0"`, each of which a bare
+`parseInt` would read as 7. Surrounding whitespace stays acceptable — AC6
+covers `"7 "` — so the rule is that the input must be all digits *after*
+trimming.
+
+Nothing in MVP1 can produce such input: `appendDigit` only ever appends `0`-`9`
+and the keypad has no other keys. This criterion exists because the PRD says
+later projects read this repo as an example, and a domain function that
+silently accepts `"7abc"` is a worse example than one that does not.
+
 ## Files to Modify
 | File | Change |
 |---|---|
@@ -114,6 +129,10 @@ scripted sequence. Randomness is injected, never taken.
 | `checkAnswer` | edge case | answer `7`, input `"07"` | called | `true` (AC8) |
 | `checkAnswer` | error case | answer `7`, input `""` | called | `false`, no throw (AC9) |
 | `checkAnswer` | edge case | answer `7`, input `"7 "` | called | `true` — surrounding whitespace ignored |
+| `checkAnswer` | error case | answer `7`, input `"7abc"` | called | `false` (AC13) |
+| `checkAnswer` | error case | answer `7`, input `"7.9"` | called | `false` (AC13) |
+| `checkAnswer` | error case | answer `7`, input `"+7"` | called | `false` (AC13) |
+| `checkAnswer` | error case | answer `7`, input `"7e0"` | called | `false` (AC13) |
 | `appendDigit` | happy path | `""` + `"5"` | called | `"5"` (AC10) |
 | `appendDigit` | happy path | `"1"` + `"2"` | called | `"12"` (AC11) |
 | `appendDigit` | boundary | `"12"` + `"3"` | called | `"12"` (AC12) |

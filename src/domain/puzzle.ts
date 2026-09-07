@@ -4,6 +4,7 @@ const MIN_OPERAND = 1;
 const MAX_OPERAND = 9;
 /** The largest answer is 18, so two characters is the whole input. */
 const MAX_INPUT_LENGTH = 2;
+const DIGITS_ONLY = /^\d+$/;
 
 function drawOperand(rng: () => number): number {
   const span = MAX_OPERAND - MIN_OPERAND + 1;
@@ -22,9 +23,16 @@ export function generatePuzzle(rng: () => number): Puzzle {
   return { left, right, answer: left + right };
 }
 
-/** Whether the typed input is the puzzle's answer. */
+/**
+ * Whether the typed input is the puzzle's answer. The input must be all
+ * digits once trimmed: `parseInt` alone would read `"7abc"` and `"7.9"` as 7.
+ */
 export function checkAnswer(puzzle: Puzzle, input: string): boolean {
-  return Number.parseInt(input.trim(), 10) === puzzle.answer;
+  const trimmed = input.trim();
+  if (!DIGITS_ONLY.test(trimmed)) {
+    return false;
+  }
+  return Number.parseInt(trimmed, 10) === puzzle.answer;
 }
 
 /** Appends one digit to the typed input, refusing to grow past two. */
