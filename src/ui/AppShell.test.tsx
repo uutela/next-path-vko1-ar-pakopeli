@@ -17,6 +17,7 @@ vi.mock('@maplibre/maplibre-react-native', () => ({
 }));
 
 vi.mock('@reactvision/react-viro', () => ({
+  ViroMaterials: { createMaterials: () => undefined },
   ViroARSceneNavigator: ({
     initialScene,
     viroAppProps,
@@ -50,7 +51,8 @@ vi.mock('@reactvision/react-viro', () => ({
       children,
     ),
   ViroText: ({ text }: { text: string }) => createElement('span', null, text),
-  ViroNode: ({ children }: { children?: ReactNode }) => createElement('div', null, children),
+  ViroNode: ({ children, viroTag }: { children?: ReactNode; viroTag?: string }) =>
+    createElement('div', { 'data-testid': viroTag }, children),
 }));
 
 const POINT: EscapePoint = {
