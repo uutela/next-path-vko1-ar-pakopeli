@@ -37,14 +37,12 @@ One line per thing noticed while working. Not implemented, not detoured into.
   a full cycle — `ar-panel.md` gained AC16, the test reproduces both behaviours
   so a frozen closure cannot hide, and `PuzzleScene` is now a module-level
   component fed through `viroAppProps`.
-- The web map loads its data but paints nothing. Probed: four requests to
-  `tiles.openfreemap.org` (style, planet, sprites) all succeed, zero failed
-  requests, and the canvas is 1280x664 with class `maplibregl-canvas` — but
-  `maplibre-gl`'s stylesheet is **not present** in the document. `Map.web.tsx`
-  says in its own comment that the web build "must also load maplibre-gl's
-  stylesheet … in the HTML shell", and nothing ever did. Same shape as the
-  `ArScreen.web.tsx` omission: an obligation written down and not enforced by
-  any criterion.
+- ~~RESOLVED~~ The web map loaded its data but painted nothing, because
+  `maplibre-gl`'s stylesheet was absent from the document. `Map.web.tsx` said
+  in its own comment that the web build must load it, and nothing did — the
+  same shape as the `ArScreen.web.tsx` omission: an obligation written down
+  and enforced by no criterion. AC10 fixed that, and it turned out to be half
+  the cause. The rest is the entry below.
 - ~~RESOLVED~~ **`@reactvision/react-viro` and `@maplibre/maplibre-react-native` could not both
   be prebuilt.** Verified by isolation: MapLibre alone succeeds, Viro alone
   succeeds, both together fail in either plugin order with
@@ -69,17 +67,15 @@ One line per thing noticed while working. Not implemented, not detoured into.
   concrete simulator even with an iPhone 17 Pro booted — only the placeholder.
   So the plan to drive the map screen with Appium in the simulator does not
   work, and every native run needs a physical device.
-- **The web map draws its background and nothing else.** After `maplibre-gl`'s
-  stylesheet was added (AC10) the document holds 103 `maplibregl` rules, the
-  canvas is 1280x647, WebGL2 is available, and the Liberty background colour
-  and the marker both render — but **no vector tile is ever fetched**. The
-  style, the TileJSON at `/planet` and the sprites all return 200; the tile
-  URL template is
-  `https://tiles.openfreemap.org/planet/<version>/{z}/{x}/{y}.pbf` and nothing
-  requests it. Ruled out by testing: headless versus headed makes no
-  difference, WebGL is present in both, no console error or failed request
-  appears, and the map element has real size. Not yet ruled out: that MapLibre
-  fetches tiles from a Web Worker whose requests the page-level listener never
-  sees, or that `react-map-gl` 8.1.3 and `maplibre-gl` 6.7.0 disagree despite
-  the permissive peer range. `scripts/browser-smoke.mjs` now asserts that tiles
-  are fetched and fails, which is the honest state.
+- ~~RESOLVED~~ **The web map still drew only its background** after the
+  stylesheet was added. `maplibre-gl` 6 resolves its worker against
+  `import.meta.url`, Metro does not rewrite that, and the dev server answered
+  `/node_modules/expo/maplibre-gl-worker.mjs` with the app's own `index.html`
+  — HTTP 200, `text/html`. A worker built from an HTML document dies on
+  creation, and MapLibre without its worker processes no tiles at all, which
+  is why not a single `.pbf` was ever requested and why no error appeared
+  anywhere. AC11 points `setWorkerUrl` at a copy in `public/`, and **both**
+  files are copied: the worker is an ES module whose first line imports
+  `./maplibre-gl-shared.mjs`, and a module worker whose sibling import cannot
+  resolve dies just as silently. The map now draws streets, buildings and
+  labels, and the smoke run is green on tiles.
