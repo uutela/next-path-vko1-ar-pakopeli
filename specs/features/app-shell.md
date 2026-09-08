@@ -84,10 +84,36 @@ Throughout, `POINT` is the seed point at `{ latitude: 60.1699, longitude: 24.938
 **When** the source is advanced again
 **Then** the callback has been called exactly once
 
+### AC10: A device that never moves still gets a position
+**Given** `createLocationSource` over a provider whose current position is `INSIDE` and which never reports a change
+**When** `watch` is called with a recording callback
+**Then** the callback receives `INSIDE` exactly once
+
+The app watched for position *changes* and never asked for the position it
+already had: `watchPositionAsync` with `distanceInterval: 1` notifies after a
+metre of movement, and `getCurrentPositionAsync` was never called. A laptop on
+a desk therefore produced no position at all, the state machine stayed in
+`MAP`, and the screen showed a map and nothing else.
+
+No test could have caught it, because catching it required *not* moving —
+Playwright's geolocation override works by changing the position, which is
+exactly the movement the real app was waiting for. It took someone sitting
+still to find it.
+
+### AC11: Movement after the first position is delivered too
+**Given** the same source, watched
+**When** the provider reports a change to `OUTSIDE`
+**Then** the callback has received `INSIDE` and then `OUTSIDE`, in that order
+
+### AC12: Cancelling before the first position arrives delivers nothing
+**Given** `createLocationSource` over a provider whose current position has not yet resolved
+**When** `watch` is cancelled and the provider then resolves
+**Then** the callback is never called
+
 ## Files to Modify
 | File | Change |
 |---|---|
-| `src/adapters/location.ts` | New. `LocationSource` and `createMockLocationSource` |
+| `src/adapters/location.ts` | `LocationSource`, `createMockLocationSource`, and `createLocationSource` over a `PositionProvider` |
 | `src/adapters/location.test.ts` | New. AC8 and AC9 |
 | `src/ui/AppShell.tsx` | New. The composition: reducer, subscription, screen routing |
 | `src/ui/AppShell.test.tsx` | New. AC1–AC7 |
@@ -118,6 +144,9 @@ Throughout, `POINT` is the seed point at `{ latitude: 60.1699, longitude: 24.938
 | `createMockLocationSource` | happy path | two coordinates | advanced twice | both delivered in order (AC8) |
 | `createMockLocationSource` | edge case | cancelled after the first | advanced again | callback called once (AC9) |
 | `createMockLocationSource` | boundary | empty list | advanced | callback never called, no throw |
+| `createLocationSource` | happy path | provider with a current position, no changes | watched | that position once (AC10) |
+| `createLocationSource` | happy path | provider reports a change | watched | current then changed, in order (AC11) |
+| `createLocationSource` | edge case | cancelled before the current position resolves | provider resolves | callback never called (AC12) |
 
 ## Spec Readiness checklist
 - [x] Every AC has a precise expected value — no "works correctly"
