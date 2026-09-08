@@ -51,3 +51,19 @@ export function isEscapePoint(value: unknown): value is EscapePoint {
     coordinates.longitude <= 180
   );
 }
+
+/**
+ * The committed seed, overridden by a local file that is typed in by hand.
+ *
+ * Both are validated. `points.json` is reviewed, but `points.local.json` is
+ * edited by a person and is the likeliest source of a malformed point in the
+ * whole system — a typed latitude of `"kuusikymmentä"` would otherwise reach
+ * `isWithinRadius` and kill the app on the first location update, exactly as a
+ * corrupt store did. See specs/features/points-store.md AC14.
+ */
+export function composeSeed(repo: unknown, local: unknown): EscapePoint[] {
+  const valid = (value: unknown): EscapePoint[] =>
+    Array.isArray(value) ? value.filter(isEscapePoint) : [];
+
+  return mergePoints(valid(repo), valid(local));
+}

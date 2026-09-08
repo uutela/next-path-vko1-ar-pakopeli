@@ -7,7 +7,7 @@ import { AppShell } from './src/ui/AppShell';
 import { createPointStore } from './src/adapters/pointStore';
 import seedPoints from './src/data/points.json';
 import localPoints from './src/data/points.local.json';
-import { mergePoints } from './src/domain/points';
+import { composeSeed } from './src/domain/points';
 import type { AudioPlayer } from './src/adapters/audio';
 import type { CameraAdapter } from './src/adapters/camera';
 import { createLocationSource } from './src/adapters/location';
@@ -28,7 +28,7 @@ import type { EscapePoint } from './src/domain/types';
  * empty by postinstall. Merging is the same rule the store already uses: a
  * matching id replaces, any other id adds. See specs/features/points-store.md.
  */
-const SEED = mergePoints(seedPoints as EscapePoint[], localPoints as EscapePoint[]);
+const SEED = composeSeed(seedPoints, localPoints);
 
 /**
  * Real GPS, as a provider. The rule that matters — deliver the position we

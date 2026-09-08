@@ -131,10 +131,24 @@ has to cover values as well as shape.
 
 This was filed in `INBOX.md` as a robustness note. It was not a note.
 
+### AC14: A hand-edited local file cannot crash the game
+**Given** a repo seed `[SEED_A]` and a local file holding `[{ id: "p1", coordinates: { latitude: "kuusikymmentä" } }]`
+**When** `composeSeed(repoSeed, localSeed)` is called
+**Then** it returns `[SEED_A]`
+
+AC13 stopped the crash coming from device storage, and the same crash could
+still arrive through the front door: `App.tsx` cast both JSON imports to
+`EscapePoint[]` with no check. `points.json` is committed and reviewed, but
+`points.local.json` is **typed in by hand** — it is the likeliest source of a
+malformed point in the whole system, not the least.
+
+Composing the seed is therefore a function in the domain rather than two casts
+in the one file no criterion covers.
+
 ## Files to Modify
 | File | Change |
 |---|---|
-| `src/domain/points.ts` | `mergePoints` and `isEscapePoint` |
+| `src/domain/points.ts` | `mergePoints`, `isEscapePoint` and `composeSeed` |
 | `src/domain/points.test.ts` | New. AC1–AC6 |
 | `src/adapters/pointStore.ts` | New. `KeyValueStore`, `createPointStore`, and the corrupt-data fallback |
 | `src/adapters/pointStore.test.ts` | New. AC7–AC10 against an in-memory fake of the storage API |
@@ -166,6 +180,8 @@ This was filed in `INBOX.md` as a robustness note. It was not a note.
 | `isEscapePoint` | boundary | latitude 91, longitude -181, radius 0 | called | `false` for each (AC12) |
 | `isEscapePoint` | happy path | a well-formed point | called | `true` |
 | `loadStoredPoints` | error case | store holds one point and one non-point | called | only the point (AC13) |
+| `composeSeed` | error case | local file with a malformed entry | called | only the committed seed (AC14) |
+| `composeSeed` | happy path | local point overriding a seed id | called | the local point wins |
 | `saveStoredPoints` | happy path | two points | called | the store holds both, ids preserved |
 | `saveStoredPoints` | error case | a solved point in memory | called | payload contains no `solved` key (AC10) |
 
