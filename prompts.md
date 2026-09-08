@@ -1397,3 +1397,47 @@ MapLibre fetching tiles from a Web Worker the page listener never sees, and a
 disagreement between `react-map-gl` 8.1.3 and `maplibre-gl` 6.7.0 despite the
 permissive peer range. The smoke script asserts tiles are fetched and fails,
 which is the honest state rather than a green run over a blank map.
+
+### 62
+> Ja sit tehdään speksiin pieni helpoitus koska haluan et muut voi kokeilla
+> tätä helpommin. Eli selainversiossa voitaisiin luopua kamerasta ja
+> overleystä. […] Haluan myös että varmistetaan että selaimessa toimii tilet.
+
+→ Two jobs. The tiles first, because they were an open finding.
+
+**The blank web map was two faults with one symptom.** AC10 had already added
+the missing stylesheet, and the map still drew only its background. AC11 is
+the rest: `maplibre-gl` 6 resolves its worker against `import.meta.url`, Metro
+does not rewrite that, and the dev server answered
+`/node_modules/expo/maplibre-gl-worker.mjs` with the app's own `index.html` —
+HTTP 200, `text/html`, 1280 bytes of doctype. A worker built from an HTML
+document dies on creation, and MapLibre without its worker processes no tiles
+at all. That is why not one `.pbf` was ever requested and why no error
+appeared anywhere: nothing failed, the work simply never began.
+
+The fix needed **two** files copied into `public/`, not one. The worker is an
+ES module whose first line imports `./maplibre-gl-shared.mjs`, and a module
+worker whose sibling import cannot resolve dies just as quietly. Copying only
+the worker moved the symptom without curing it.
+
+The smoke script had drifted too: it walked to hardcoded Senaatintori
+coordinates, which stopped matching the moment a local point override existed.
+It now derives the walk from the points the app actually uses, and never
+prints them.
+
+**Then the simplification, which removed criteria rather than adding them.**
+The web build uses no camera at all: `ArScreen.web.tsx` renders the panel on a
+plain background. AC20 was rewritten to assert the *absence* of a camera — it
+renders with the permission reporting `denied` on purpose, because web must
+not consult it — and AC21, which explained a denied camera on web, is gone
+along with the thing it explained. The PRD, `architecture.md` and `ui-ux.md`
+all say "no camera on web" now.
+
+The browser test shows the change better than the code does: it launches with
+no camera flags and no camera permission, and still plays the whole game.
+
+Fourteen smoke checks, all passing, no console or page errors. 117 tests.
+
+**Still true, and still the thing that blocks strangers:** geolocation needs a
+secure context. `localhost` is exempt and nothing else is, so until the build
+is hosted over HTTPS nobody else gets past the map — camera or no camera.

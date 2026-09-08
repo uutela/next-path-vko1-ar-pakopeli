@@ -31,10 +31,15 @@ protected.
 
 **Platforms.** iOS and Android are the product. Web is a bonus and will not
 have anchored AR — React Native Web cannot do it. Everything else works on
-web, including the puzzle: the panel appears as a heads-up overlay on the
-camera preview rather than anchored in the world. This is spelled out because
-"everything else works on web" was once read as permission to ship a web build
-that only showed the map, and a build nobody can play is not a bonus.
+web, including the puzzle — but **web uses no camera at all**. The panel is a
+plain screen there: walk into range, the puzzle opens, you type the answer.
+This is spelled out because "everything else works on web" was once read as
+permission to ship a web build that only showed the map, and a build nobody
+can play is not a bonus.
+
+The camera went from the web build deliberately, to make it easy for other
+people to try. A camera needs a permission prompt and a secure context; the
+puzzle needs neither.
 
 **AR.** The panel is anchored in the world, not a camera overlay. The puzzle
 text and the number keys are one object; pressing a key means touching the
@@ -92,7 +97,7 @@ Explicitly out of scope for MVP1. None of these is a missing feature.
 - **No anti-cheat.** A player can walk away and come back, or read the code.
 - **No persisted progress.** See Decisions.
 - **No 3D models or scene content** beyond the puzzle panel itself.
-- **No anchored AR on web.**
+- **No anchored AR on web, and no camera on web at all.**
 - **No analytics, telemetry or crash reporting.** The player's location never
   leaves the device.
 - **One point and one puzzle only.** Multiple points, sequenced courses and

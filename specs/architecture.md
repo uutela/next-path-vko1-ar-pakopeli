@@ -85,14 +85,15 @@ platform extensions. Nothing in the tree reads `Platform.OS`.
 **The map.** `Map.tsx` on iOS and Android, `Map.web.tsx` on web. Same props,
 same constants from `config/map.ts`.
 
-**The camera view.** `ArScreen.tsx` with `PuzzlePanel.tsx` draws the panel as
-a Viro object anchored in the world. `ArScreen.web.tsx` with
-`PuzzlePanel.web.tsx` draws the same panel as ordinary React Native views over
-a camera preview — a heads-up overlay, fixed to the screen rather than to the
-world.
+**The puzzle view.** `ArScreen.tsx` with `PuzzlePanel.tsx` draws the panel as
+a Viro object anchored in the world, over the device camera.
+`ArScreen.web.tsx` with `PuzzlePanel.web.tsx` draws the same panel as ordinary
+React Native views on a plain background — no camera, no overlay. The camera
+adapter is still passed to both, and the web screen ignores it.
 
-**Anchoring is the native-only part; the puzzle is not.** The PRD's non-goal
-is "no anchored AR on web", and an overlay is not anchored AR. Both panels are
+**The camera is the native-only part; the puzzle is not.** The PRD's non-goals
+are "no anchored AR on web" and no camera there either, which is what makes
+the web build something a stranger can open and play. Both panels are
 driven by the same `GameState`, dispatch the same `GameEvent`s, and get their
 rules from `domain/`. The two implementations differ in how they draw and
 never in what they do — which is what makes the shared `transition` worth

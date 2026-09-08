@@ -8,12 +8,14 @@
 | Screen | Shown when | Contains |
 |---|---|---|
 | Map | `MAP`, `NEAR` | Map, point markers, attribution, and in `NEAR` the button to open the puzzle |
-| Camera | `PUZZLE`, `SOLVED` | Camera, the puzzle panel, and the reset control once solved |
+| Puzzle | `PUZZLE`, `SOLVED` | The puzzle panel, and the reset control once solved. On a phone, over the camera |
 
-The camera screen is the same screen on both platforms and shows the same
-text. On a phone the panel is anchored in the world; on web it is a heads-up
-overlay fixed to the screen. Nothing else about it differs, and no string
+The puzzle screen shows the same text on both platforms. On a phone the panel
+is anchored in the world over the camera; on web there is no camera and the
+panel sits on a plain background. Nothing else about it differs, and no string
 below is platform-specific.
+
+`Kamera tarvitaan tehtävän avaamiseen.` therefore appears on the phone only.
 
 There is no navigation stack, no tab bar and no menu. The state decides the
 screen; the player never chooses one.

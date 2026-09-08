@@ -46,12 +46,12 @@ const record = (id, expected, actual) =>
 
 mkdirSync(OUT, { recursive: true });
 
-const browser = await chromium.launch({
-  // A synthetic camera, so getUserMedia resolves without hardware.
-  args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
-});
+// No camera flags and no camera permission: the web build asks for neither,
+// which is the point of dropping it. Geolocation is still needed, and still
+// needs a secure context outside localhost.
+const browser = await chromium.launch();
 const context = await browser.newContext({
-  permissions: ['geolocation', 'camera'],
+  permissions: ['geolocation'],
   geolocation: FAR,
   locale: 'fi-FI',
 });
@@ -122,15 +122,15 @@ record('map-view the map canvas is actually painted', true, (canvasShot?.length 
 record('map-view the map fetches vector tiles', true, tileRequests.length > 0);
 record('map-view every tile request succeeds', true, tileRequests.every((s) => s < 400));
 
-// The whole puzzle, played on web. The panel is an overlay here rather than
-// anchored — anchoring is the native-only part, not the puzzle.
+// The whole puzzle, played on web. No camera and no anchoring here — both are
+// native-only by the PRD, and the puzzle is neither.
 if (offers > 0) {
   console.log('→ clicking "Avaa tehtävä"');
   await page.getByText('Avaa tehtävä').first().click();
   await page.waitForTimeout(3_000);
   await page.screenshot({ path: `${OUT}/03-puzzle.png`, fullPage: true });
 
-  record('ar-panel AC20 camera preview present', 1, await page.getByTestId('camera-preview').count());
+  record('ar-panel AC20 no camera on web', 0, await page.locator('video').count());
   const sum = await page.locator('text=/^\\d \\+ \\d = \\?$/').first().textContent();
   console.log(`  panel reads: ${JSON.stringify(sum)}`);
   record('ar-panel AC20 panel states a sum', true, /^\d \+ \d = \?$/.test(sum ?? ''));
@@ -152,7 +152,7 @@ if (offers > 0) {
   record('ar-panel AC7 congratulation appears', 1, await page.getByText('Oikein! Laatikko aukesi.').count());
   record('ar-panel AC12 reset control appears', 1, await page.getByText('Aloita alusta').count());
 } else {
-  record('ar-panel AC20 camera preview present', 1, 'not reached — no offer to click');
+  record('ar-panel AC20 no camera on web', 0, 'not reached — no offer to click');
 }
 
 console.log('\n──────── results ────────');
