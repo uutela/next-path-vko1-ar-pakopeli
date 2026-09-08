@@ -84,22 +84,50 @@ export function PuzzlePanel({ state, onEvent, audio }: PuzzlePanelProps) {
   );
 }
 
+/**
+ * Every size is in metres of world space, and every ViroText carries an
+ * explicit width and height. Viro gives an unsized text box roughly a metre
+ * on a side, which inside a 0.36 m panel overflowed the column and clipped
+ * away the title, the input and eleven of the twelve keys — on the device the
+ * panel showed only its background, the input strip and one key.
+ *
+ * Nothing in jsdom can see this: the tests render Viro through a stand-in that
+ * turns every element into a div, so they prove what the component asks Viro
+ * to draw and never how Viro draws it.
+ */
+const ROW_HEIGHT = KEY_SIZE + 0.008;
+
 const panel = {
   width: 0.3,
-  height: 0.36,
+  height: 0.44,
   flexDirection: 'column' as const,
   alignItems: 'center' as const,
+  justifyContent: 'center' as const,
   backgroundColor: '#faf9f7',
   padding: 0.01,
 };
 const keyRow = {
   width: 0.22,
-  height: KEY_SIZE + 0.008,
+  height: ROW_HEIGHT,
   flexDirection: 'row' as const,
   justifyContent: 'center' as const,
+  alignItems: 'center' as const,
 };
-const title = { fontSize: 14, color: '#1a1a1a' };
-const display = { width: 0.28, height: 0.05, backgroundColor: '#ffffff' };
+const title = {
+  width: 0.28,
+  height: 0.05,
+  fontSize: 20,
+  color: '#1a1a1a',
+  textAlign: 'center' as const,
+  textAlignVertical: 'center' as const,
+};
+const display = {
+  width: 0.28,
+  height: 0.05,
+  backgroundColor: '#ffffff',
+  justifyContent: 'center' as const,
+  alignItems: 'center' as const,
+};
 const key = {
   width: KEY_SIZE,
   height: KEY_SIZE,
@@ -108,4 +136,11 @@ const key = {
   justifyContent: 'center' as const,
   alignItems: 'center' as const,
 };
-const keyLabel = { fontSize: 12, color: '#1a1a1a' };
+const keyLabel = {
+  width: KEY_SIZE,
+  height: KEY_SIZE,
+  fontSize: 18,
+  color: '#1a1a1a',
+  textAlign: 'center' as const,
+  textAlignVertical: 'center' as const,
+};

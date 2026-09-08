@@ -14,10 +14,31 @@ import { mkdirSync } from 'node:fs';
 const URL = process.argv[2] ?? 'http://localhost:8081';
 const OUT = process.argv[3] ?? '.smoke';
 
-/** The seed point in src/data/points.json, and a position 19 m north of it. */
-const POINT = { latitude: 60.1699, longitude: 24.9384 };
-const INSIDE = { latitude: 60.1700708711, longitude: 24.9384 };
-const FAR = { latitude: 60.1707993216, longitude: 24.9384 };
+/**
+ * Derived from the points the app actually uses, so a local override in
+ * points.local.json is walked to rather than missed. The values are never
+ * printed: a point is a place someone stands.
+ */
+const { readFileSync } = await import('node:fs');
+const readPoints = (path) => {
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return [];
+  }
+};
+const byId = new Map();
+for (const p of [...readPoints('src/data/points.json'), ...readPoints('src/data/points.local.json')]) {
+  byId.set(p.id, p);
+}
+const POINT = [...byId.values()][0]?.coordinates;
+if (!POINT) {
+  throw new Error('no points to walk to');
+}
+/** Metres to degrees of latitude, so the offsets below are exact. */
+const DEG = 1 / 111_194.93;
+const INSIDE = { latitude: POINT.latitude + 19 * DEG, longitude: POINT.longitude };
+const FAR = { latitude: POINT.latitude + 100 * DEG, longitude: POINT.longitude };
 
 const results = [];
 const record = (id, expected, actual) =>
@@ -70,7 +91,7 @@ record(
 record('app-shell AC1 no offer while far', 0, await page.getByText('Avaa tehtävä').count());
 
 // AC2 — walking into range offers the puzzle.
-console.log(`→ moving to ${INSIDE.latitude}, ${INSIDE.longitude} (19 m from the point)`);
+console.log('→ moving to 19 m from the point');
 await context.setGeolocation(INSIDE);
 await page.waitForTimeout(4_000);
 await page.screenshot({ path: `${OUT}/02-near.png`, fullPage: true });

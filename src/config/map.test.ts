@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { MAP_ATTRIBUTION, MAP_STYLE_URL } from './map';
 
@@ -48,6 +48,14 @@ describe('map configuration', () => {
     const source = readFileSync('src/ui/Map.web.tsx', 'utf8');
 
     expect(source).toContain(['maplibre-gl', 'dist', 'maplibre-gl.css'].join('/'));
+  });
+
+  it('AC11: the web map serves MapLibre’s worker as JavaScript', () => {
+    const source = readFileSync('src/ui/Map.web.tsx', 'utf8');
+
+    expect(source).toContain('setWorkerUrl');
+    expect(source).toContain('/maplibre-gl-worker.mjs');
+    expect(existsSync('public/maplibre-gl-worker.mjs')).toBe(true);
   });
 
   it('AC7: no API key or access token appears anywhere in the source', () => {
