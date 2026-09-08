@@ -1441,3 +1441,34 @@ Fourteen smoke checks, all passing, no console or page errors. 117 tests.
 **Still true, and still the thing that blocks strangers:** geolocation needs a
 secure context. `localhost` is exempt and nothing else is, so until the build
 is hosted over HTTPS nobody else gets past the map — camera or no camera.
+
+### 63
+> Koititko et http://localhost:8081/ :ssa avaa oikeasti tehtävän?
+
+> Voiko ongelma olla se ettei läppärini liiku, joten joku tarkastus ei laukea?
+
+→ The honest answer to the first was "yes, but only through Playwright, which
+grants the permission and injects the position". The human path had never been
+walked, and the second question found exactly why it fails.
+
+`App.tsx` watched for position *changes* and never asked for the position it
+already had: `watchPositionAsync` with `distanceInterval: 1` notifies after a
+metre of movement, and `getCurrentPositionAsync` was called zero times. **A
+laptop on a desk therefore produced no position at all**, the state machine
+stayed in `MAP`, and the screen showed a map and nothing else.
+
+**No test could have caught this, because catching it required not moving.**
+Playwright's geolocation override works by *changing* the position, which is
+the very movement the app was waiting for — so the automated walk passed while
+a person sitting still saw nothing. It took someone stationary to find it, and
+the user found it by reasoning about their own chair.
+
+Fixed with criteria first: `app-shell.md` AC10 to AC12 pin that a device which
+never moves still gets a position, that later movement still arrives, and that
+cancelling before the first position delivers nothing. The rule moved out of
+`App.tsx` into `createLocationSource` over a `PositionProvider`, so it is
+tested rather than living in the one file no criterion covers; `App.tsx` now
+only fetches.
+
+Proved by the case that used to fail: permission granted, position set once
+and never changed. `Avaa tehtävä` appears and the puzzle opens with `3 + 8 = ?`.

@@ -10,7 +10,8 @@ import localPoints from './src/data/points.local.json';
 import { mergePoints } from './src/domain/points';
 import type { AudioPlayer } from './src/adapters/audio';
 import type { CameraAdapter } from './src/adapters/camera';
-import type { LocationSource } from './src/adapters/location';
+import { createLocationSource } from './src/adapters/location';
+import type { PositionProvider } from './src/adapters/location';
 import type { EscapePoint } from './src/domain/types';
 
 /**
@@ -29,31 +30,37 @@ import type { EscapePoint } from './src/domain/types';
  */
 const SEED = mergePoints(seedPoints as EscapePoint[], localPoints as EscapePoint[]);
 
-/** Real GPS. The mock source in src/adapters/location.ts is for development. */
-function createExpoLocationSource(): LocationSource {
+/**
+ * Real GPS, as a provider. The rule that matters — deliver the position we
+ * already have, then deliver changes — lives in createLocationSource, where it
+ * is tested. This only fetches. The mock source is for development.
+ */
+function createExpoPositionProvider(): PositionProvider {
+  const granted = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    return status === 'granted';
+  };
+
   return {
-    watch(onChange) {
-      let subscription: Location.LocationSubscription | undefined;
-      let cancelled = false;
+    async getCurrent() {
+      if (!(await granted())) {
+        throw new Error('location permission was not granted');
+      }
+      const { coords } = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      return { latitude: coords.latitude, longitude: coords.longitude };
+    },
 
-      void (async () => {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted' || cancelled) {
-          return;
-        }
-        subscription = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.High, distanceInterval: 1 },
-          ({ coords }) => onChange({ latitude: coords.latitude, longitude: coords.longitude }),
-        );
-        if (cancelled) {
-          subscription.remove();
-        }
-      })();
-
-      return () => {
-        cancelled = true;
-        subscription?.remove();
-      };
+    async watch(onChange) {
+      if (!(await granted())) {
+        return () => undefined;
+      }
+      const subscription = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, distanceInterval: 1 },
+        ({ coords }) => onChange({ latitude: coords.latitude, longitude: coords.longitude }),
+      );
+      return () => subscription.remove();
     },
   };
 }
@@ -65,7 +72,7 @@ const fanfarePlayer = createAudioPlayer(require('./assets/fanfare.wav'));
 export default function App() {
   const [permission, requestPermission] = useCameraPermissions();
 
-  const location = useMemo(createExpoLocationSource, []);
+  const location = useMemo(() => createLocationSource(createExpoPositionProvider()), []);
   const pointStore = useMemo(() => createPointStore(AsyncStorage), []);
   const audio = useMemo<AudioPlayer>(() => ({ play: () => fanfarePlayer.play() }), []);
 
