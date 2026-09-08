@@ -26,3 +26,7 @@ android/
 
 # Local points: a place someone stands is not repository content
 src/data/points.local.json
+
+# Generated from node_modules by postinstall
+public/maplibre-gl-worker.mjs
+public/maplibre-gl-shared.mjs

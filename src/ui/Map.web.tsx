@@ -1,7 +1,14 @@
+import { setWorkerUrl } from 'maplibre-gl';
 import MapGL, { Marker } from 'react-map-gl/maplibre';
 // Without this the map loads its tiles and paints nothing: the canvas is
 // created at full size and the screen stays white. See map-view.md AC10.
 import 'maplibre-gl/dist/maplibre-gl.css';
+
+// maplibre-gl 6 resolves its worker against import.meta.url, which Metro does
+// not rewrite, so the request landed on the dev server's HTML fallback and the
+// worker died on creation. Without its worker MapLibre processes no tiles at
+// all. postinstall copies the file into public/. See map-view.md AC11.
+setWorkerUrl('/maplibre-gl-worker.mjs');
 import { StyleSheet, Text, View } from 'react-native';
 import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '../config/map';
 import type { MapProps } from './Map';
