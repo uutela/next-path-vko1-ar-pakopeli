@@ -3,7 +3,7 @@
 Every message from the user that drove this project, in order and verbatim,
 as part of the next-path week 1 exercise. Answers chosen from a multiple
 choice prompt are marked as selections rather than typed text. A `→` line
-after each entry records what it changed.
+after each entry summarises what was answered and what it changed.
 
 Course-step prompts are quoted in full. Nothing here is paraphrased.
 
@@ -11,6 +11,97 @@ The assistant's own replies are not reproduced — this is a record of what
 drove the work, not a transcript. Several messages below are answers to a
 question that is therefore invisible, so those carry an *In reply to* line
 naming the question they settle.
+
+The `→` summaries run to three sentences where the answer was worth three and
+longer where it was not. The instruction asked for brevity; the entries that
+exceed it are the ones where something was found, and shortening those would
+throw away the part of this file the study circle is meant to read.
+
+---
+
+## Where the submission lives
+
+| Asked for | Here |
+|---|---|
+| Repository | https://github.com/uutela/next-path-vko1-ar-pakopeli |
+| Spec and acceptance criteria | `specs/features/` — seven specs, 100 criteria |
+| Evidence of order | below, with commit hashes and one honest exception |
+| Green tests | `specs/audit-report.md`, and the summary below |
+| Reflection | below |
+| INBOX | `INBOX.md` — nine entries, seven resolved |
+
+```
+$ npm test
+ Test Files  14 passed (14)
+      Tests  132 passed (132)
+$ npx tsc --noEmit
+ exit 0
+$ node scripts/browser-smoke.mjs
+ 14 checks, 0 console errors, 0 page errors
+```
+
+## Was the spec written before the code?
+
+For the six specs of step 4, yes, and git shows it. They landed in one commit
+of their own, and every line of implementation came afterwards:
+
+| Spec | Spec commit | First implementation |
+|---|---|---|
+| `proximity.md` | `22b9ca6` | `178637e` |
+| `puzzle.md` | `22b9ca6` | `891bb81` |
+| `game-state.md` | `22b9ca6` | `c536a5a` |
+| `points-store.md` | `22b9ca6` | `5a07039` |
+
+**One exception, stated rather than tidied away.** `specs/features/app-shell.md`
+and `src/ui/AppShell.tsx` are in the same commit, `b7af453`. The spec *was*
+written first — the red run against nine criteria and a stub is in entry 55 —
+but the commit does not prove it, and a reader should not have to take my word
+for it.
+
+**And one slip inside a cycle.** map-view AC12 and AC13 went green the moment
+they were written, because the implementation and the tests went in together.
+That is the exact trap `AGENTS.md` names. It is recorded in entry 64, and both
+criteria were then proved able to fail rather than left to look fine.
+
+## Reflection: what had to be said more than once
+
+Three times, in different words, the same correction:
+
+> **53** — *"pitääkö react native testata muulla tapaa?"*
+> **58** — *"eikös pitäis jatkaa vaihetta 7 oikean react nativen testauksella?"*
+> **63** — *"Koititko et http://localhost:8081/ :ssa avaa oikeasti tehtävän?"*
+
+Every one of them says: **you are verifying this one step away from how it
+will actually be used.** And every one of them was right, with a real defect
+behind it:
+
+1. The browser run passed against a web bundle that **did not compile at all**,
+   because `AppShell` imported Viro unconditionally and Viro's web files need a
+   peer package that is not published.
+2. The native build had **no Viro in it whatsoever** — installed with
+   `npm install` instead of `expo install`, so its config plugin was never
+   registered — and two config plugins then destroyed each other's Podfile.
+3. Playwright granted the location permission and *moved* the position, while
+   the app watched only for movement. **A laptop on a desk got no position at
+   all.** No test could have found it, because finding it required not moving.
+
+The pattern behind all three is the same. Each layer of verification was
+honest about what it checked and silent about what it stood in for: a mocked
+Viro proves what the component asks Viro to draw, never how Viro draws it; a
+jsdom render proves a style value, never a pixel; an injected position proves
+a state transition, never that a position ever arrives.
+
+The second pattern is mine, and it repeated three times without anyone having
+to point it out: I wrote a rule into a document and did not put a criterion
+behind it. `architecture.md` said the AR screen had no web implementation, and
+nothing enforced it. `ui-ux.md` showed a telephone keypad, and AC3 passed
+while the keys rendered four to a row. `Map.web.tsx` said in its own comment
+that the web build must load MapLibre's stylesheet, and nothing did. **An
+architecture rule with no criterion is a comment**, and it took three separate
+defects to learn it.
+
+---
+
 
 ---
 
@@ -1569,3 +1660,24 @@ local console. AGENTS.md's guardrail is that the player's location never
 leaves the device, and nothing here sends anything anywhere.
 
 132 tests, tsc clean, and no `.catch(() => undefined)` left in the tree.
+
+### 67
+> Tässä step 9 ohje: […] Write all my prompts to prompts.md and briefly
+> summarise what you answered with three sentences each.
+
+→ The log itself was written as the work happened rather than reconstructed at
+the end, so step 9 was mostly a matter of adding what a reader needs on top of
+it: where each thing the submission form asks for actually lives, whether the
+spec really preceded the code, and the one honest answer to "what did you have
+to say twice".
+
+The order question has a clean answer for the six step-4 specs — one commit of
+their own, `22b9ca6`, before any implementation — and one exception that is
+stated rather than hidden: `app-shell.md` shares a commit with `AppShell.tsx`,
+so the history does not prove for that spec what entry 55 shows actually
+happened. The map-view AC12/AC13 slip is named in the same place.
+
+The reflection is the part worth reading. Three times the user had to say, in
+different words, that the verification was one step removed from how the thing
+would really be used — and all three times there was a defect hiding in
+exactly that gap.
