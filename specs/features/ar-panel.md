@@ -104,7 +104,7 @@ could never be pressed in `NEAR`, the state that fires it. It now lives in
 ### AC15: Every key is large enough to hit at arm's length
 **Given** `PUZZLE_STATE`
 **When** the panel is rendered and each key's style is read
-**Then** every one of the twelve keys is at least `0.06` wide and `0.06` high in Viro's units, and `PANEL_DISTANCE_METRES` is at most `0.7`
+**Then** every one of the twelve keys is at least `0.24` wide and `0.24` high in Viro's units, and `PANEL_DISTANCE_METRES` is at most `2.8`
 
 Viro measures its layout in metres of world space, not in React Native points,
 even though `ViroStyle` is declared as `ViewStyle & ShadowStyleIOS` and so
@@ -113,10 +113,22 @@ asked for 48 x 48 points; written against a Viro panel that would have meant
 48 metres, and the test would have passed while asserting nonsense — the worst
 kind of green.
 
-The numbers above are an angular size: 0.06 m at 0.7 m subtends 4.9 degrees,
-and at the intended 0.6 m it is 5.7 degrees. That is several times the angular
-size of a 48 dp target on a phone held at arm's length, which is the right
-margin for a panel aimed at with a whole arm rather than a thumb.
+The numbers are an angular size, and only the angle matters to a player: a
+0.24 m key at 2.4 m subtends 5.72 degrees, which is exactly what a 0.06 m key
+at 0.6 m subtended. Four times the geometry at four times the distance looks
+identical.
+
+The panel was built at the smaller scale first and the device showed why that
+fails. Viro's text is sized in points against world units, and at a 0.06 m key
+no font size worked: 8 rendered nothing at all, and 12 already overflowed the
+key and was clipped to fragments. The title at 14 spilled off the top of a
+0.44 m panel, which put one glyph at roughly 0.08 m — taller than a key. The
+geometry was too small for the type, so the geometry moved rather than the
+type.
+
+That is also why the distance bound is 2.8 m rather than arm's length. Nothing
+is reached out and touched here: a key is aimed at by pointing the phone, and
+the angle is what decides whether it can be hit.
 
 ### AC16: The panel inside the AR scene sees the current state
 **Given** `ArScreen` rendered with camera permission `granted` and `PUZZLE_STATE` with `input: ""`
@@ -192,6 +204,21 @@ catch it: twelve keys in the right order can still be in the wrong shape. The
 rows are therefore structural rather than a consequence of wrapping, so the
 criterion can be checked without a layout engine.
 
+### AC23: The panel is visible from behind
+**Given** the anchored panel rendered with `PUZZLE_STATE`
+**When** the material it applies to its background is read
+**Then** that material has `cullMode: 'None'`
+
+A Viro quad is single-sided by default, so walking around the panel made it
+disappear — reported from the field. `cullMode: 'None'` draws both faces, which
+makes the box findable from any direction. The text on the far side is
+mirrored, which is what a flat sign does and is not worth a second panel.
+
+The criterion asserts the material rather than the appearance, because no test
+here can see a pixel: the anchored panel is rendered through a stand-in that
+turns Viro into `div`s. What it *can* prove is that the component asks for a
+double-sided surface, and the field is where the rest is confirmed.
+
 ## Files to Modify
 | File | Change |
 |---|---|
@@ -256,6 +283,7 @@ criterion can be checked without a layout engine.
 | `PuzzlePanel` (web) | happy path | the shared panel suite | run against the web panel | AC2–AC14 all pass (AC18) |
 | `PuzzlePanel` (web) | boundary | `PUZZLE_STATE` | each key's style read | every key `minWidth` and `minHeight` >= 48 (AC19) |
 | both panels | happy path | `PUZZLE_STATE` | keypad rows read | four rows of three, `1 2 3` / `4 5 6` / `7 8 9` / `C 0 OK` (AC22) |
+| `PuzzlePanel` (anchored) | happy path | the panel material | read | `cullMode: 'None'` (AC23) |
 | `ArScreen` (web) | happy path | permission `denied`, `PUZZLE_STATE` | rendered | panel text present, no `video`, no camera notice (AC20) |
 | `PuzzlePanel` | happy path | `SOLVED` | `Aloita alusta` pressed | one `RESET` (AC12) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` with `input: "12"` | key `C` pressed | one `CLEAR`, display empty (AC13) |

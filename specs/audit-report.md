@@ -192,7 +192,9 @@ Two findings remain recorded and neither is a defect:
 2. **`Map.web.tsx` is executed only by `scripts/browser-smoke.mjs`.** Its
    criteria are source-tree assertions. The Vitest count does not cover it,
    and nobody should read it as if it did.
-3. **The native panel's sizing fix is unverified.** The device walkthrough
-   showed the panel drawing only its background, one input strip and one key;
-   every `ViroText` now has an explicit width and height, and nobody has
-   looked since. Step 7 is not closed until someone does.
+3. ~~The native panel's sizing fix is unverified.~~ **Verified on the device.**
+   It took three rounds and the fix was not the one expected: no font size
+   worked at the original scale, so the geometry moved instead — four times the
+   size at four times the distance, which is the same 5.72 degrees to a player
+   and large enough for Viro's type. The panel now draws its sum, its input
+   strip and twelve keys in a telephone grid, and is visible from behind.

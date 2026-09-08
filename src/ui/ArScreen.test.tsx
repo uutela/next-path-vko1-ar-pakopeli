@@ -18,6 +18,7 @@ import type { EscapePoint, GameState } from '../domain/types';
  * make a frozen closure look fine.
  */
 vi.mock('@reactvision/react-viro', () => ({
+  ViroMaterials: { createMaterials: () => undefined },
   ViroARSceneNavigator: ({
     initialScene,
     viroAppProps,
@@ -40,7 +41,8 @@ vi.mock('@reactvision/react-viro', () => ({
   ViroFlexView: ({ children, viroTag }: { children?: ReactNode; viroTag?: string }) =>
     createElement('div', { 'data-testid': viroTag }, children),
   ViroText: ({ text }: { text: string }) => createElement('span', null, text),
-  ViroNode: ({ children }: { children?: ReactNode }) => createElement('div', null, children),
+  ViroNode: ({ children, viroTag }: { children?: ReactNode; viroTag?: string }) =>
+    createElement('div', { 'data-testid': viroTag }, children),
 }));
 
 const POINT: EscapePoint = {

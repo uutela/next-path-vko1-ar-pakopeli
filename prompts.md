@@ -1681,3 +1681,49 @@ The reflection is the part worth reading. Three times the user had to say, in
 different words, that the verification was one step removed from how the thing
 would really be used — and all three times there was a defect hiding in
 exactly that gap.
+
+---
+
+## Closing step 7 — the anchored panel on the device
+
+### 68
+> Ei ihan toi AR:ssä toi meidän laatikko *(with photographs)*
+> Kun yritin kameralla kurkata taakse niin objektia ei näkynyt. Edestä pysyi
+> hienosti paikallaan.
+> Nyt hyvän kokoiset kohdat, mutta näppäinten sijainti tai laskutoimitus ei näe.
+> Olisi myös kiva, jos tämä "laatikko" näkyisi myös takaapäin
+> Ei mikään ole oikean kokoinen *(with the calibration photograph)*
+> Toimii
+
+→ Four rounds on the device, and only the photographs could resolve any of it.
+The tests stayed green throughout and proved nothing about it: the anchored
+panel renders through a stand-in that turns every Viro element into a `div`, so
+the suite shows what the component asks Viro to draw and never how Viro draws
+it.
+
+Round one: the panel anchored correctly and drew only its background, one
+input strip and one key. Cause — Viro gives an unsized `ViroText` a box about a
+metre across, which overflowed a 0.44 m panel and clipped everything after the
+first element.
+
+Round two: explicit sizes made every glyph enormous and stacked in the middle.
+Nested `ViroFlexView` was not laying anything out, so the rows became
+`ViroNode`s at known heights with keys at known offsets — Viro positions nodes
+in 3D reliably even when it will not lay them out. That fixed the grid: twelve
+keys, four rows of three, and no text at all.
+
+Round three stopped the guessing. Rather than pick a third font size, each row
+rendered at a different one — 8, 12, 16, 20 — so one photograph could settle
+it. It settled something else instead: **no size worked.** 8 rendered nothing,
+12 already overflowed the key and clipped to fragments, and the title at 14
+spilled off the panel, which put one glyph at roughly 0.08 m against a 0.06 m
+key. The geometry was too small for the type.
+
+So the geometry moved, not the type. Four times the size at four times the
+distance is 5.72 degrees either way — the same key to aim at — and a 16 pt
+glyph fits a 0.24 m key with room. AC15 now states the angle as well as the
+numbers, so a future rescale cannot quietly make the keys harder to hit.
+
+`cullMode: 'None'` and an unlit material came from the same field report: a
+Viro quad is single-sided, so the box vanished when walked behind, and a lit
+one would have gone black indoors. AC23.
