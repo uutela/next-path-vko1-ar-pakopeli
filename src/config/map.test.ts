@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { MAP_ATTRIBUTION, MAP_STYLE_URL } from './map';
+import { MAP_ATTRIBUTION, MAP_FALLBACK_CENTRE, MAP_STYLE_URL, initialCentre } from './map';
+import type { EscapePoint } from '../domain/types';
 
 /**
  * Built from parts so this test file does not itself contain the strings it
@@ -27,6 +28,24 @@ function sourceFiles(dir = 'src'): string[] {
 function filesContaining(needle: string): string[] {
   return sourceFiles().filter((path) => readFileSync(path, 'utf8').includes(needle));
 }
+
+const POINT_A: EscapePoint = {
+  id: 'p1',
+  name: 'Eka',
+  coordinates: { latitude: 60.1699, longitude: 24.9384 },
+  radiusMeters: 20,
+};
+const POINT_B: EscapePoint = { ...POINT_A, id: 'p2', coordinates: { latitude: 60.2, longitude: 25 } };
+
+describe('initialCentre', () => {
+  it('AC12: the centre is the first point', () => {
+    expect(initialCentre([POINT_A, POINT_B])).toEqual([24.9384, 60.1699]);
+  });
+
+  it('AC13: with no points the centre falls back to a named constant', () => {
+    expect(initialCentre([])).toEqual(MAP_FALLBACK_CENTRE);
+  });
+});
 
 describe('map configuration', () => {
   it('AC1: the style URL is defined exactly once, in src/config/map.ts', () => {

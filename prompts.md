@@ -1472,3 +1472,30 @@ only fetches.
 
 Proved by the case that used to fail: permission granted, position set once
 and never changed. `Avaa tehtävä` appears and the puzzle opens with `3 + 8 = ?`.
+
+### 64
+> Korjataan numero 1, mutta ei tuota kakkosta. Tee prosessin mukaan
+
+> Ja testasin että selaimessa toimii
+
+→ The map centred on a hard-coded Senaatintori, so a point anywhere else was
+off screen and the player saw a map of somewhere they were not. AC5 passed
+regardless: a marker per point is true whether or not the marker is in view.
+The gap had been in `INBOX.md` since the map was written — filed and left —
+which is why it was still there to make a real diagnosis take an hour.
+
+Spec first: `map-view.md` AC12, AC13 and AC14. The centre is a pure function,
+`initialCentre(points)`, so both platforms share it and it is tested without
+rendering anything — the native map reads it through MapLibre's `Camera`,
+which it had never had at all, and the web map through `initialViewState`.
+
+**A process slip worth recording.** AC12 and AC13 went green the moment they
+were written, because the implementation and the tests went in together — the
+exact trap AGENTS.md names. Rather than pretend otherwise, both were proved
+able to fail: swapping longitude and latitude turns AC12 red, and returning
+`[0, 0]` instead of the named fallback turns AC13 red. The criteria are sound;
+the discipline was not, and the difference is worth naming.
+
+AC14 had a genuine red, since `Map.tsx` had no `Camera` to configure.
+
+123 tests, tsc clean, every smoke check passing.
