@@ -101,10 +101,40 @@ Throughout, `SEED_A` is `{ id: "p1", name: "Puisto", coordinates: { latitude: 60
 **When** the stored payload is inspected
 **Then** no key named `solved` appears anywhere in it
 
+### AC11: An entry that is not a point is dropped
+**Given** `isEscapePoint(value)` for each of `{ id: "p2", foo: 1 }`, `null`, `"p1"`, `42`, and a point missing `radiusMeters`
+**When** it is called
+**Then** it returns `false` for every one
+
+### AC12: A point with impossible values is dropped
+**Given** `isEscapePoint` for a point with `latitude: 91`, one with `longitude: -181`, and one with `radiusMeters: 0`
+**When** it is called
+**Then** it returns `false` for every one
+
+### AC13: Stored entries that are not points never reach the game
+**Given** a store holding `[SEED_A, { id: "p2", foo: 1 }]`
+**When** `loadStoredPoints()` is called
+**Then** it resolves to `[SEED_A]`
+
+AC9 guarded unparseable JSON and JSON that is not an array, and stopped there.
+An array of the wrong shape passed straight through, reached `isWithinRadius`,
+and threw on the first location update:
+
+```
+TypeError: Cannot destructure property 'latitude' of 'undefined' as it is undefined.
+```
+
+Verified by running it. The app died seconds after launch with no way back
+except clearing device storage. A point with a latitude of 91 does the same
+thing one step later, through `distanceMeters`' own range check — so the guard
+has to cover values as well as shape.
+
+This was filed in `INBOX.md` as a robustness note. It was not a note.
+
 ## Files to Modify
 | File | Change |
 |---|---|
-| `src/domain/points.ts` | New. `mergePoints` |
+| `src/domain/points.ts` | `mergePoints` and `isEscapePoint` |
 | `src/domain/points.test.ts` | New. AC1–AC6 |
 | `src/adapters/pointStore.ts` | New. `KeyValueStore`, `createPointStore`, and the corrupt-data fallback |
 | `src/adapters/pointStore.test.ts` | New. AC7–AC10 against an in-memory fake of the storage API |
@@ -132,6 +162,10 @@ Throughout, `SEED_A` is `{ id: "p1", name: "Puisto", coordinates: { latitude: 60
 | `loadStoredPoints` | happy path | a point was saved | called after save | that point (AC7) |
 | `loadStoredPoints` | edge case | store never written | called | `[]`, no throw (AC8) |
 | `loadStoredPoints` | error case | store holds `not json` | called | `[]`, no throw (AC9) |
+| `isEscapePoint` | error case | five malformed values | called | `false` for each (AC11) |
+| `isEscapePoint` | boundary | latitude 91, longitude -181, radius 0 | called | `false` for each (AC12) |
+| `isEscapePoint` | happy path | a well-formed point | called | `true` |
+| `loadStoredPoints` | error case | store holds one point and one non-point | called | only the point (AC13) |
 | `saveStoredPoints` | happy path | two points | called | the store holds both, ids preserved |
 | `saveStoredPoints` | error case | a solved point in memory | called | payload contains no `solved` key (AC10) |
 

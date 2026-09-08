@@ -58,6 +58,15 @@ describe('pointStore', () => {
     expect(loaded.map((p) => p.id)).toEqual(['p1', 'p2']);
   });
 
+  it('AC13: stored entries that are not points never reach the game', async () => {
+    const { storage } = fakeStorage({
+      'ar-pakopeli.points': JSON.stringify([SEED_A, { id: 'p2', foo: 1 }]),
+    });
+    const store = createPointStore(storage);
+
+    await expect(store.loadStoredPoints()).resolves.toEqual([SEED_A]);
+  });
+
   it('AC10: solved progress is never written to the store', async () => {
     const { storage, written } = fakeStorage();
     const store = createPointStore(storage);
