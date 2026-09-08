@@ -1,6 +1,6 @@
-import { Map as MapLibreMap, Marker } from '@maplibre/maplibre-react-native';
+import { Camera, Map as MapLibreMap, Marker } from '@maplibre/maplibre-react-native';
 import { StyleSheet, Text, View } from 'react-native';
-import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '../config/map';
+import { MAP_ATTRIBUTION, MAP_STYLE_URL, MAP_ZOOM, initialCentre } from '../config/map';
 import type { EscapePoint } from '../domain/types';
 
 export interface MapProps {
@@ -12,6 +12,9 @@ export function Map({ points }: MapProps) {
   return (
     <View style={styles.container}>
       <MapLibreMap style={styles.map} mapStyle={MAP_STYLE_URL} attribution={false}>
+        {/* Without this the map opened wherever MapLibre chose, and a point
+            anywhere else was off screen. See map-view.md AC14. */}
+        <Camera initialViewState={{ center: initialCentre(points), zoom: MAP_ZOOM }} />
         {points.map((point) => (
           <Marker
             key={point.id}

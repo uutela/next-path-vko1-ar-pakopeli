@@ -22,10 +22,13 @@ One line per thing noticed while working. Not implemented, not detoured into.
   running each input. Only this app writes the key, so the shape can only be
   wrong if a future version changes it — which is exactly when it would hurt.
   Fixing it means a validating criterion in `points-store.md` first.
-- The map has no `Camera`, so it does not centre on the player or on any
-  point. No criterion in `map-view.md` asks for centring, so it was left out
-  under the smallest-implementation rule — but a map that never centres is not
-  usable in the field. Needs a criterion before it is added.
+- ~~RESOLVED~~ The map had no `Camera` and opened on a hard-coded Senaatintori,
+  so a point anywhere else was off screen and the player saw a map of
+  somewhere they were not. AC5 passed regardless — a marker per point is true
+  whether or not the marker is in view — and no criterion said where the map
+  should look. Filed here and left, which is why it was still true when it
+  made a real diagnosis take an hour. Resolved by `initialCentre`, a pure
+  function both platforms share: AC12, AC13 and AC14.
 - ~~RESOLVED~~ `ArScreen` built the AR scene as a closure — `const scene = () => <ViroARScene><PuzzlePanel …/></ViroARScene>`
   — and Viro is given it once through `initialScene`. If Viro calls it only at
   mount, the panel would keep the props it captured then, and the typed input

@@ -10,7 +10,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // all. postinstall copies the file into public/. See map-view.md AC11.
 setWorkerUrl('/maplibre-gl-worker.mjs');
 import { StyleSheet, Text, View } from 'react-native';
-import { MAP_ATTRIBUTION, MAP_STYLE_URL } from '../config/map';
+import { MAP_ATTRIBUTION, MAP_STYLE_URL, MAP_ZOOM, initialCentre } from '../config/map';
 import type { MapProps } from './Map';
 
 /**
@@ -24,7 +24,11 @@ export function Map({ points }: MapProps) {
         <MapGL
           mapStyle={MAP_STYLE_URL}
           attributionControl={false}
-          initialViewState={{ longitude: 24.9384, latitude: 60.1699, zoom: 15 }}
+          initialViewState={{
+            longitude: initialCentre(points)[0],
+            latitude: initialCentre(points)[1],
+            zoom: MAP_ZOOM,
+          }}
           // Explicit rather than `flex: 1`: react-map-gl renders a plain DOM
           // div, where a flex value inside react-native-web's layout means
           // nothing. This did not by itself make the map draw its data — see
