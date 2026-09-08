@@ -31,7 +31,10 @@ protected.
 
 **Platforms.** iOS and Android are the product. Web is a bonus and will not
 have anchored AR — React Native Web cannot do it. Everything else works on
-web.
+web, including the puzzle: the panel appears as a heads-up overlay on the
+camera preview rather than anchored in the world. This is spelled out because
+"everything else works on web" was once read as permission to ship a web build
+that only showed the map, and a build nobody can play is not a bonus.
 
 **AR.** The panel is anchored in the world, not a camera overlay. The puzzle
 text and the number keys are one object; pressing a key means touching the

@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import { render, screen } from '@testing-library/react';
 import { createElement } from 'react';
 import { ArScreen } from './ArScreen.web';
-import type { CameraAdapter } from '../adapters/camera';
-import type { EscapePoint, GameState } from '../domain/types';
+import { PUZZLE_STATE } from './panelBehaviour';
+import type { CameraAdapter, CameraPermission } from '../adapters/camera';
 
 /**
  * Assembled from parts so this file is not itself a match, and matched as an
@@ -26,21 +26,18 @@ function sourceFiles(dir = 'src'): string[] {
   });
 }
 
-const POINT: EscapePoint = {
-  id: 'p1',
-  name: 'Puisto',
-  coordinates: { latitude: 60.1699, longitude: 24.9384 },
-  radiusMeters: 20,
-};
+function cameraAdapter(permission: CameraPermission) {
+  const requests: number[] = [];
+  const camera: CameraAdapter = { permission, request: () => requests.push(1) };
+  return { camera, requests };
+}
 
-const PUZZLE_STATE = {
-  kind: 'PUZZLE',
-  point: POINT,
-  puzzle: { left: 5, right: 2, answer: 7 },
-  input: '',
-} satisfies Extract<GameState, { kind: 'PUZZLE' }>;
-
-const camera: CameraAdapter = { permission: 'granted', request: () => undefined };
+const props = (permission: CameraPermission) => ({
+  state: PUZZLE_STATE,
+  onEvent: () => undefined,
+  audio: { play: () => undefined },
+  camera: cameraAdapter(permission).camera,
+});
 
 describe('the web platform split', () => {
   it('AC17: only the native AR files import Viro', () => {
@@ -51,24 +48,23 @@ describe('the web platform split', () => {
     expect(importers.sort()).toEqual(['src/ui/ArScreen.tsx', 'src/ui/PuzzlePanel.tsx']);
   });
 
-  it('AC17: the web AR screen imports neither Viro nor the panel', () => {
-    const source = readFileSync('src/ui/ArScreen.web.tsx', 'utf8');
-
-    expect(VIRO_IMPORT.test(source)).toBe(false);
-    expect(source).not.toContain('./PuzzlePanel');
+  it('AC17: neither web file imports Viro', () => {
+    for (const path of ['src/ui/ArScreen.web.tsx', 'src/ui/PuzzlePanel.web.tsx']) {
+      expect(VIRO_IMPORT.test(readFileSync(path, 'utf8'))).toBe(false);
+    }
   });
 
-  it('AC18: the web AR screen says where the puzzle can be opened', () => {
-    render(
-      createElement(ArScreen, {
-        state: PUZZLE_STATE,
-        onEvent: () => undefined,
-        audio: { play: () => undefined },
-        camera,
-      }),
-    );
+  it('AC20: the web camera screen draws the panel over a camera preview', () => {
+    render(createElement(ArScreen, props('granted')));
 
-    expect(screen.getAllByText('Tehtävä avataan puhelimen sovelluksessa.')).toHaveLength(1);
-    expect(screen.queryAllByTestId(/^key-/)).toHaveLength(0);
+    expect(screen.getAllByTestId('camera-preview')).toHaveLength(1);
+    expect(screen.getByText('5 + 2 = ?')).toBeTruthy();
+  });
+
+  it('AC21: denied camera permission on web explains itself', () => {
+    render(createElement(ArScreen, props('denied')));
+
+    expect(screen.getAllByText('Kamera tarvitaan tehtävän avaamiseen.')).toHaveLength(1);
+    expect(screen.queryAllByTestId(/^key-(?!row-)/)).toHaveLength(0);
   });
 });

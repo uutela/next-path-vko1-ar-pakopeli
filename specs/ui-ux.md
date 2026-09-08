@@ -8,7 +8,12 @@
 | Screen | Shown when | Contains |
 |---|---|---|
 | Map | `MAP`, `NEAR` | Map, point markers, attribution, and in `NEAR` the button to open the puzzle |
-| AR | `PUZZLE`, `SOLVED` | Camera, the anchored panel, and the reset control once solved |
+| Camera | `PUZZLE`, `SOLVED` | Camera, the puzzle panel, and the reset control once solved |
+
+The camera screen is the same screen on both platforms and shows the same
+text. On a phone the panel is anchored in the world; on web it is a heads-up
+overlay fixed to the screen. Nothing else about it differs, and no string
+below is platform-specific.
 
 There is no navigation stack, no tab bar and no menu. The state decides the
 screen; the player never chooses one.
@@ -26,7 +31,6 @@ acceptance criteria assert, so they are settled here and nowhere else.
 | Camera denied | `Kamera tarvitaan tehtävän avaamiseen.` |
 | Reset control | `Aloita alusta` |
 | Map attribution | `© OpenMapTiles Data from OpenStreetMap` |
-| AR screen, on web | `Tehtävä avataan puhelimen sovelluksessa.` |
 
 Nothing is written for a wrong answer. The input simply empties, which is
 feedback enough and avoids a scolding tone in a game meant to be fun.
@@ -56,8 +60,12 @@ player should not have to read it.
 This panel is used at arm's length, outdoors, by someone whose hand is not
 steady. So:
 
-- Every key is at least **48 x 48 points**, with adjacent centres at least
-  **56 points** apart. This is `ar-panel.md` AC15, not a suggestion
+- On a phone the panel is a Viro object measured in metres, so every key is at
+  least **0.06 m** on a panel no further than **0.7 m** away — about 5 degrees
+  of angular size. This is `ar-panel.md` AC15
+- On web the panel is ordinary React Native views measured in points, so every
+  key is at least **48 x 48 points**. Same intent, different unit, because the
+  two renderers measure different things
 - Puzzle text and input display are large enough to read past arm's length —
   at least **32 points**
 - The attribution is the one small thing on screen, and it still has a floor:

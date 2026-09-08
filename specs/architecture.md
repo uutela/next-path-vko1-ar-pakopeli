@@ -29,8 +29,9 @@ slow and awkward to test, so anything that *can* be moved out of them must be.
 src/
   domain/       types.ts  distance.ts  puzzle.ts  gameState.ts  points.ts
   adapters/     location.ts  camera.ts  pointStore.ts  audio.ts
-  ui/           MapScreen.tsx  Map.tsx  Map.web.tsx
-                ArScreen.tsx  PuzzlePanel.tsx
+  ui/           AppShell.tsx  MapScreen.tsx  Map.tsx  Map.web.tsx
+                ArScreen.tsx      PuzzlePanel.tsx      (native, anchored)
+                ArScreen.web.tsx  PuzzlePanel.web.tsx  (web, overlay)
   config/       map.ts
   data/         points.json
   testing/      scriptedRng.ts — helpers used only by tests
@@ -78,13 +79,29 @@ Mocked location is a development and testing tool. The demo runs on real GPS.
 
 ## Platform split
 
-Native and web differ in exactly one place: the map. React Native resolves
-`Map.tsx` on iOS and Android and `Map.web.tsx` on web, and both take the same
-props and import the same constants from `config/map.ts`. Nothing else in the
-tree branches on platform.
+Native and web differ in two places, and both are resolved by React Native's
+platform extensions. Nothing in the tree reads `Platform.OS`.
 
-The AR screen has no web implementation. On web the app shows the map and
-says so; anchored AR is a native-only feature by the PRD.
+**The map.** `Map.tsx` on iOS and Android, `Map.web.tsx` on web. Same props,
+same constants from `config/map.ts`.
+
+**The camera view.** `ArScreen.tsx` with `PuzzlePanel.tsx` draws the panel as
+a Viro object anchored in the world. `ArScreen.web.tsx` with
+`PuzzlePanel.web.tsx` draws the same panel as ordinary React Native views over
+a camera preview — a heads-up overlay, fixed to the screen rather than to the
+world.
+
+**Anchoring is the native-only part; the puzzle is not.** The PRD's non-goal
+is "no anchored AR on web", and an overlay is not anchored AR. Both panels are
+driven by the same `GameState`, dispatch the same `GameEvent`s, and get their
+rules from `domain/`. The two implementations differ in how they draw and
+never in what they do — which is what makes the shared `transition` worth
+having.
+
+An earlier version of this section said the AR screen had no web
+implementation at all and that web would only show the map. That was stricter
+than the PRD, which says "everything else works on web", and it made the web
+build a showcase rather than something a person could play.
 
 ## What this architecture refuses
 

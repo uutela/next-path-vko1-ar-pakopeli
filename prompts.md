@@ -1289,3 +1289,78 @@ rendering, and the marker's position. **What is not yet exercised:** every
 criterion past the `MAP` state, because `MAP → NEAR` needs the player within
 20 m of the seed point. That is the next session's work — either move the seed
 point to where the phone is, or walk to Senaatintori.
+
+---
+
+## Back to steps 4 and 5 — a playable web build
+
+### 60
+> Jotta saadaan tämä joidenkin muidenkin laitteilla ja koneilla toimimaan,
+> niin ehkä se react native web olisi myös hyvä saada toimimaan. Miten meidän
+> pitää palata stepeissä takaisin, jos halutaan tehdä niin, että web versiossa
+> ei tarvitse olla tuo oikea AR vaan riittää overlay cameran päälle?
+
+> Joo
+
+→ **Not as far back as it looked.** The PRD already said it: "Web is a bonus
+and will not have anchored AR — React Native Web cannot do it. *Everything
+else works on web.*" A camera overlay is not anchored AR, so the non-goal
+still holds and nothing about the product changed.
+
+What contradicted it was `specs/architecture.md`, written in step 5: "the AR
+screen has no web implementation; on web the app shows the map and says so".
+That was stricter than the PRD, and the build followed it. **The restriction
+was mine, not a product decision** — so the earliest step to revisit was 5,
+not 3.
+
+Changed: `architecture.md` (the platform split now covers the camera view as
+well as the map), `ui-ux.md` (one camera screen, same strings on both
+platforms, sizes in metres for Viro and points for web), and the PRD sharpened
+to say the overlay out loud rather than leaving it to be inferred.
+
+Then step 4: `ar-panel.md` AC17 widened, AC18 to AC21 replaced.
+
+**AC18 is the one worth noting.** Rather than copying thirteen criteria for a
+second panel, it says the web panel must satisfy AC2–AC14 *unchanged*. The
+suite lives in `src/ui/panelBehaviour.ts` and runs against both
+implementations. Two renderings of one behaviour, so the behaviour is written
+once — and the web panel is tested more honestly than the anchored one, since
+`react-native-web` renders real components where Viro needs a stand-in.
+
+RED was 16: thirteen from the shared suite against a stub, plus AC19, AC20 and
+AC21. GREEN with `PuzzlePanel.web.tsx` and a rewritten `ArScreen.web.tsx` that
+puts the panel over a `getUserMedia` preview.
+
+**Then a screenshot found what no test had.** The keypad rendered four columns
+of three, because the keys wrapped on width. `ui-ux.md` has always shown the
+telephone layout, and AC3 passed anyway: twelve keys in the right order can
+still be in the wrong shape. Same failure as the platform split — a rule in a
+document with no criterion behind it. AC22 now pins four rows of three, and
+both panels build the rows structurally instead of relying on wrapping.
+
+Two test queries then broke, and both were the instrument's fault:
+`getAllByTestId(/^key-/)` had started matching `key-row-0`. Narrowed to
+`/^key-(?!row-)/`.
+
+The browser now plays the whole game. Chromium with a synthetic camera, the
+position driven through Playwright's geolocation override, and the answer read
+off the screen rather than assumed:
+
+```
+  panel reads: "7 + 8 = ?"
+→ typing 15, then OK
+PASS  ar-panel AC20 camera preview present
+PASS  ar-panel AC20 panel states a sum
+PASS  ar-panel AC3 twelve keys
+PASS  ar-panel AC4 input display shows what was typed
+PASS  ar-panel AC7 congratulation appears
+PASS  ar-panel AC12 reset control appears
+console errors: 0   page errors: 0
+```
+
+116 tests across 14 files, tsc clean.
+
+**Still open for anyone else to run it:** camera and geolocation need HTTPS in
+a browser. `localhost` is exempt, so this works on the developer's machine and
+nowhere else until the build is hosted over HTTPS. That is a deployment
+decision the PRD does not yet cover.
