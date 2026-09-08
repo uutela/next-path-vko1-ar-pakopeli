@@ -1,3 +1,4 @@
+import { isEscapePoint } from '../domain/points';
 import type { EscapePoint } from '../domain/types';
 
 const STORAGE_KEY = 'ar-pakopeli.points';
@@ -28,7 +29,9 @@ export function createPointStore(storage: KeyValueStore): PointStore {
       }
       try {
         const parsed: unknown = JSON.parse(raw);
-        return Array.isArray(parsed) ? (parsed as EscapePoint[]) : [];
+        // Shape-checked one by one rather than cast: an array of the wrong
+        // things used to reach the game and crash it. See AC13.
+        return Array.isArray(parsed) ? parsed.filter(isEscapePoint) : [];
       } catch {
         // A corrupt store falls back to the seed rather than crashing the app.
         return [];

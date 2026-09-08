@@ -1,4 +1,4 @@
-import { mergePoints } from './points';
+import { isEscapePoint, mergePoints } from './points';
 import type { EscapePoint } from './types';
 
 const SEED_A: EscapePoint = {
@@ -58,5 +58,33 @@ describe('mergePoints', () => {
 
     expect(seed).toEqual(seedBefore);
     expect(stored).toEqual(storedBefore);
+  });
+});
+
+describe('isEscapePoint', () => {
+  it('AC11: an entry that is not a point is dropped', () => {
+    const notPoints: unknown[] = [
+      { id: 'p2', foo: 1 },
+      null,
+      'p1',
+      42,
+      { id: 'p3', name: 'x', coordinates: { latitude: 60, longitude: 24 } },
+    ];
+
+    expect(notPoints.map(isEscapePoint)).toEqual([false, false, false, false, false]);
+  });
+
+  it('AC12: a point with impossible values is dropped', () => {
+    const impossible: unknown[] = [
+      { ...SEED_A, coordinates: { latitude: 91, longitude: 24 } },
+      { ...SEED_A, coordinates: { latitude: 60, longitude: -181 } },
+      { ...SEED_A, radiusMeters: 0 },
+    ];
+
+    expect(impossible.map(isEscapePoint)).toEqual([false, false, false]);
+  });
+
+  it('AC11: a well-formed point is kept', () => {
+    expect(isEscapePoint(SEED_A)).toBe(true);
   });
 });

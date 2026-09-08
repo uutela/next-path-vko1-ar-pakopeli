@@ -16,12 +16,14 @@ One line per thing noticed while working. Not implemented, not detoured into.
   first, then the tests, then the implementation. The reason is the PRD —
   later projects read this repo as an example, and a domain function that
   silently accepts `"7abc"` is a worse example than one that does not.
-- `loadStoredPoints` guards against unparseable JSON (AC9) and against JSON
-  that is not an array, but not against an array of the wrong shape:
-  `[{"foo":1}]` and `[null]` are returned as if they were points. Probed by
-  running each input. Only this app writes the key, so the shape can only be
-  wrong if a future version changes it — which is exactly when it would hurt.
-  Fixing it means a validating criterion in `points-store.md` first.
+- ~~RESOLVED~~ `loadStoredPoints` guarded unparseable JSON and non-arrays but
+  not the shape of what was inside, so `[{"id":"p2","foo":1}]` reached
+  `isWithinRadius` and threw `TypeError: Cannot destructure property
+  'latitude' of 'undefined'` on the first location update — the app dying
+  seconds after launch with no way back but clearing device storage. Filed
+  here as a robustness note; the step 8 audit found it was a crash. Resolved
+  by `isEscapePoint`, a pure guard covering shape *and* values, with AC11 to
+  AC13.
 - ~~RESOLVED~~ The map had no `Camera` and opened on a hard-coded Senaatintori,
   so a point anywhere else was off screen and the player saw a map of
   somewhere they were not. AC5 passed regardless — a marker per point is true
