@@ -73,6 +73,23 @@ screen appearing only in `PUZZLE` and `SOLVED`, so a button rendered there
 could never be pressed in `NEAR` — the state in which it fires. The map screen
 is what the player is looking at when they arrive.
 
+### AC10: The web map loads MapLibre's stylesheet
+**Given** `src/ui/Map.web.tsx`
+**When** its imports are inspected
+**Then** it imports `maplibre-gl/dist/maplibre-gl.css`
+
+Without it the map loads its data and paints nothing: the tiles, the style and
+the sprites all arrive, the canvas is created at full size with class
+`maplibregl-canvas`, and the screen stays white. `Map.web.tsx` said in its own
+comment that the web build "must also load maplibre-gl's stylesheet … in the
+HTML shell", and nothing ever did — a rule written down with no criterion
+behind it, the same shape as the missing platform split.
+
+AC6 did not catch it, and could not: jsdom has no layout engine, so "the
+container is present with `flex: 1`" is true of a blank map as well as a
+drawn one. What a browser can check is in `scripts/browser-smoke.mjs`, which
+samples the canvas and fails if every pixel is the same colour.
+
 ## Files to Modify
 | File | Change |
 |---|---|
@@ -110,6 +127,7 @@ is what the player is looking at when they arrive.
 | `Map` | happy path | two points | rendered | two markers at the given coordinates (AC5) |
 | `Map` | boundary | zero points | rendered | zero markers, container present with `flex: 1`, no throw (AC6) |
 | source tree | error case | all files | searched for key and token names | no matches (AC7) |
+| source tree | happy path | `Map.web.tsx` | imports inspected | imports `maplibre-gl/dist/maplibre-gl.css` (AC10) |
 | `MapScreen` | happy path | `NEAR` | rendered | one pressable `Avaa tehtävä`; pressing dispatches one `OPEN_PUZZLE` (AC8) |
 | `MapScreen` | boundary | `MAP` | rendered | no `Avaa tehtävä` element (AC9) |
 
