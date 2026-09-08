@@ -13,7 +13,14 @@ import type { GameEvent, GameState } from '../domain/types';
 export const PANEL_DISTANCE_METRES = 0.6;
 export const KEY_SIZE = 0.06;
 
-const KEY_LABELS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', 'OK'] as const;
+/** The telephone arrangement, as rows rather than as a consequence of
+ * wrapping, so the layout is structural and cannot drift with a width. */
+const KEY_ROWS = [
+  ['1', '2', '3'],
+  ['4', '5', '6'],
+  ['7', '8', '9'],
+  ['C', '0', 'OK'],
+] as const;
 
 export interface PuzzlePanelProps {
   state: Extract<GameState, { kind: 'PUZZLE' } | { kind: 'SOLVED' }>;
@@ -59,14 +66,18 @@ export function PuzzlePanel({ state, onEvent, audio }: PuzzlePanelProps) {
       <ViroFlexView viroTag="input-display" style={display}>
         <ViroText text={state.input} style={title} />
       </ViroFlexView>
-      {KEY_LABELS.map((label) => (
-        <ViroFlexView
-          key={label}
-          viroTag={`key-${label}`}
-          onClick={() => onEvent(eventForKey(label))}
-          style={key}
-        >
-          <ViroText text={label} style={keyLabel} />
+      {KEY_ROWS.map((row, index) => (
+        <ViroFlexView key={row.join('')} viroTag={`key-row-${index}`} style={keyRow}>
+          {row.map((label) => (
+            <ViroFlexView
+              key={label}
+              viroTag={`key-${label}`}
+              onClick={() => onEvent(eventForKey(label))}
+              style={key}
+            >
+              <ViroText text={label} style={keyLabel} />
+            </ViroFlexView>
+          ))}
         </ViroFlexView>
       ))}
     </ViroFlexView>
@@ -76,11 +87,16 @@ export function PuzzlePanel({ state, onEvent, audio }: PuzzlePanelProps) {
 const panel = {
   width: 0.3,
   height: 0.36,
-  flexDirection: 'row' as const,
-  flexWrap: 'wrap' as const,
-  justifyContent: 'center' as const,
+  flexDirection: 'column' as const,
+  alignItems: 'center' as const,
   backgroundColor: '#faf9f7',
   padding: 0.01,
+};
+const keyRow = {
+  width: 0.22,
+  height: KEY_SIZE + 0.008,
+  flexDirection: 'row' as const,
+  justifyContent: 'center' as const,
 };
 const title = { fontSize: 14, color: '#1a1a1a' };
 const display = { width: 0.28, height: 0.05, backgroundColor: '#ffffff' };

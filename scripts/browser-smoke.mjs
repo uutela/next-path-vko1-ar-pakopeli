@@ -25,9 +25,12 @@ const record = (id, expected, actual) =>
 
 mkdirSync(OUT, { recursive: true });
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({
+  // A synthetic camera, so getUserMedia resolves without hardware.
+  args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
+});
 const context = await browser.newContext({
-  permissions: ['geolocation'],
+  permissions: ['geolocation', 'camera'],
   geolocation: FAR,
   locale: 'fi-FI',
 });
@@ -81,21 +84,36 @@ record(
   Boolean(canvasBox && canvasBox.width > 0 && canvasBox.height > 0),
 );
 
-// ar-panel AC18 — on web the AR screen says where the puzzle can be opened.
-// The puzzle itself is native-only: Viro does not run here, by the PRD.
+// The whole puzzle, played on web. The panel is an overlay here rather than
+// anchored — anchoring is the native-only part, not the puzzle.
 if (offers > 0) {
   console.log('→ clicking "Avaa tehtävä"');
   await page.getByText('Avaa tehtävä').first().click();
   await page.waitForTimeout(3_000);
-  await page.screenshot({ path: `${OUT}/03-after-open.png`, fullPage: true });
-  record(
-    'ar-panel AC18 web says where the puzzle opens',
-    1,
-    await page.getByText('Tehtävä avataan puhelimen sovelluksessa.').count(),
-  );
-  record('ar-panel AC18 no keypad on web', 0, await page.getByText('OK', { exact: true }).count());
+  await page.screenshot({ path: `${OUT}/03-puzzle.png`, fullPage: true });
+
+  record('ar-panel AC20 camera preview present', 1, await page.getByTestId('camera-preview').count());
+  const sum = await page.locator('text=/^\\d \\+ \\d = \\?$/').first().textContent();
+  console.log(`  panel reads: ${JSON.stringify(sum)}`);
+  record('ar-panel AC20 panel states a sum', true, /^\d \+ \d = \?$/.test(sum ?? ''));
+  record('ar-panel AC3 twelve keys', 12, await page.getByTestId(/^key-/).count());
+
+  // Solve it: read the operands off the screen and type the answer.
+  const [left, right] = (sum ?? '').match(/\d/g)?.map(Number) ?? [];
+  const answer = String((left ?? 0) + (right ?? 0));
+  console.log(`→ typing ${answer}, then OK`);
+  for (const digit of answer) {
+    await page.getByTestId(`key-${digit}`).click();
+  }
+  record('ar-panel AC4 input display shows what was typed', answer, await page.getByTestId('input-display').innerText());
+
+  await page.getByTestId('key-OK').click();
+  await page.waitForTimeout(1_500);
+  await page.screenshot({ path: `${OUT}/04-solved.png`, fullPage: true });
+  record('ar-panel AC7 congratulation appears', 1, await page.getByText('Oikein! Laatikko aukesi.').count());
+  record('ar-panel AC12 reset control appears', 1, await page.getByText('Aloita alusta').count());
 } else {
-  record('ar-panel AC18 web says where the puzzle opens', 1, 'not reached — no offer to click');
+  record('ar-panel AC20 camera preview present', 1, 'not reached — no offer to click');
 }
 
 console.log('\n──────── results ────────');
