@@ -11,7 +11,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "generate:fanfare": "node scripts/generate-fanfare.mjs",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package && node scripts/ensure-local-points.mjs"
   },
   "dependencies": {
     "@maplibre/maplibre-react-native": "^11.3.10",
