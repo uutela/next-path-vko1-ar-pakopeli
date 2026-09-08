@@ -69,3 +69,17 @@ One line per thing noticed while working. Not implemented, not detoured into.
   concrete simulator even with an iPhone 17 Pro booted — only the placeholder.
   So the plan to drive the map screen with Appium in the simulator does not
   work, and every native run needs a physical device.
+- **The web map draws its background and nothing else.** After `maplibre-gl`'s
+  stylesheet was added (AC10) the document holds 103 `maplibregl` rules, the
+  canvas is 1280x647, WebGL2 is available, and the Liberty background colour
+  and the marker both render — but **no vector tile is ever fetched**. The
+  style, the TileJSON at `/planet` and the sprites all return 200; the tile
+  URL template is
+  `https://tiles.openfreemap.org/planet/<version>/{z}/{x}/{y}.pbf` and nothing
+  requests it. Ruled out by testing: headless versus headed makes no
+  difference, WebGL is present in both, no console error or failed request
+  appears, and the map element has real size. Not yet ruled out: that MapLibre
+  fetches tiles from a Web Worker whose requests the page-level listener never
+  sees, or that `react-map-gl` 8.1.3 and `maplibre-gl` 6.7.0 disagree despite
+  the permissive peer range. `scripts/browser-smoke.mjs` now asserts that tiles
+  are fetched and fails, which is the honest state.

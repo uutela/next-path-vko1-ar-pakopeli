@@ -38,6 +38,9 @@ const page = await context.newPage();
 
 const consoleErrors = [];
 const pageErrors = [];
+/** Vector tile requests. Zero of them means the map has no data to draw. */
+const tileRequests = [];
+page.on('response', (r) => /\.pbf(\?|$)/.test(r.url()) && tileRequests.push(r.status()));
 page.on('console', (m) => m.type() === 'error' && consoleErrors.push(m.text()));
 page.on('pageerror', (e) => pageErrors.push(e.message));
 
@@ -84,6 +87,20 @@ record(
   Boolean(canvasBox && canvasBox.width > 0 && canvasBox.height > 0),
 );
 
+// A canvas with area is not a canvas with a map on it — the blank map that
+// prompted map-view AC10 passed both checks above. A PNG of a uniform image
+// compresses to a few hundred bytes; a drawn map does not, so the encoded
+// size separates them without needing a decoder.
+const canvasShot = canvases > 0 ? await page.locator('canvas').first().screenshot() : null;
+console.log(`  canvas png: ${canvasShot?.length ?? 0} bytes, vector tiles fetched: ${tileRequests.length}`);
+record('map-view the map canvas is actually painted', true, (canvasShot?.length ?? 0) > 5_000);
+// The size check alone was too lenient: a background colour and one marker
+// already cleared it while the map had fetched no tiles at all, because its
+// container had zero height. Tile requests are the check that would have
+// caught that.
+record('map-view the map fetches vector tiles', true, tileRequests.length > 0);
+record('map-view every tile request succeeds', true, tileRequests.every((s) => s < 400));
+
 // The whole puzzle, played on web. The panel is an overlay here rather than
 // anchored — anchoring is the native-only part, not the puzzle.
 if (offers > 0) {
@@ -96,7 +113,8 @@ if (offers > 0) {
   const sum = await page.locator('text=/^\\d \\+ \\d = \\?$/').first().textContent();
   console.log(`  panel reads: ${JSON.stringify(sum)}`);
   record('ar-panel AC20 panel states a sum', true, /^\d \+ \d = \?$/.test(sum ?? ''));
-  record('ar-panel AC3 twelve keys', 12, await page.getByTestId(/^key-/).count());
+  // Keys only: `key-row-0` and friends share the prefix.
+  record('ar-panel AC3 twelve keys', 12, await page.getByTestId(/^key-(?!row-)/).count());
 
   // Solve it: read the operands off the screen and type the answer.
   const [left, right] = (sum ?? '').match(/\d/g)?.map(Number) ?? [];

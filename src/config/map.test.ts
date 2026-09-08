@@ -44,6 +44,12 @@ describe('map configuration', () => {
     expect(MAP_ATTRIBUTION).toBe('© OpenMapTiles Data from OpenStreetMap');
   });
 
+  it('AC10: the web map loads MapLibre’s stylesheet', () => {
+    const source = readFileSync('src/ui/Map.web.tsx', 'utf8');
+
+    expect(source).toContain(['maplibre-gl', 'dist', 'maplibre-gl.css'].join('/'));
+  });
+
   it('AC7: no API key or access token appears anywhere in the source', () => {
     for (const name of KEY_NAMES) {
       expect(filesContaining(name)).toEqual([]);
