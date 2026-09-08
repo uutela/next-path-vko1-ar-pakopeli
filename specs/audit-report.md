@@ -151,10 +151,15 @@ $ grep 'as EscapePoint[]' src App.tsx   no matches
 
 Three findings remain recorded and none is a defect:
 
-1. **`createLocationSource` discards the reason a position never arrived.** Two
-   `.catch(() => undefined)` calls. The user has decided against showing
-   location state in the UI, which settles the product question; this is the
-   developer-visibility half, and it stays open in `INBOX.md`.
+1. ~~`createLocationSource` discards the reason a position never arrived.~~
+   **Fixed after the round 2 verdict**, on the user's decision. The adapter now
+   takes a `report` callback defaulting to a local `console.warn`, pinned by
+   app-shell AC13 and AC14. Opening the app without location permission prints
+   `[location] Error: location permission was not granted` and nothing else —
+   the one line that would have pointed straight at yesterday's problem. The
+   player still sees no location status, which remains the scope decision it
+   always was; the two halves are now decided separately, as they should have
+   been. No `.catch(() => undefined)` is left in the tree.
 2. **`Map.web.tsx` is executed only by `scripts/browser-smoke.mjs`.** Its
    criteria are source-tree assertions. The Vitest count does not cover it,
    and nobody should read it as if it did.

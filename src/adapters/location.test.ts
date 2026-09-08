@@ -106,3 +106,37 @@ describe('createLocationSource', () => {
     expect(seen).toEqual([]);
   });
 });
+
+describe('createLocationSource reporting', () => {
+  const failing = (which: 'getCurrent' | 'watch', reason: Error): PositionProvider => ({
+    getCurrent: () =>
+      which === 'getCurrent' ? Promise.reject(reason) : Promise.resolve(INSIDE),
+    watch: () => (which === 'watch' ? Promise.reject(reason) : Promise.resolve(() => undefined)),
+  });
+
+  it('AC13: a position that never arrives says why', async () => {
+    const reasons: unknown[] = [];
+    const seen: Coordinates[] = [];
+    const reason = new Error('location permission was not granted');
+
+    createLocationSource(failing('getCurrent', reason), (r) => reasons.push(r)).watch((c) =>
+      seen.push(c),
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reasons).toEqual([reason]);
+    expect(seen).toEqual([]);
+  });
+
+  it('AC14: a failing watch says why too', async () => {
+    const reasons: unknown[] = [];
+    const reason = new Error('no position available');
+
+    createLocationSource(failing('watch', reason), (r) => reasons.push(r)).watch(() => undefined);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reasons).toContain(reason);
+  });
+});

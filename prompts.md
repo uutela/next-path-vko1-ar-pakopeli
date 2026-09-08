@@ -1536,3 +1536,36 @@ discards why a position never arrived (the UI half is a decision already
 made, the developer-visibility half is not), `Map.web.tsx` is executed only by
 the browser smoke test, and the native panel's sizing fix has not been looked
 at on the device since it was written.
+
+### 66
+*In reply to: four open decisions, each with a recommendation*
+
+> 1. lokitetaan
+
+→ The adapter ended both promises with `.catch(() => undefined)`, which made a
+refused permission, a device with no fix and a timeout indistinguishable from
+"still looking" — to the player *and* to whoever was debugging. Two decisions
+lived in that line and only one had been made: not showing the player a
+location status is a scope decision and it stands, while throwing the reason
+away was never decided at all. It was a reflex to avoid an unhandled rejection.
+
+app-shell AC13 and AC14, red first. `createLocationSource` now takes a
+`report` callback defaulting to a local `console.warn`, so the rule is tested
+with a spy rather than by trusting a side effect.
+
+Proved on the path that used to be silent: opening the app with no location
+permission prints exactly one line —
+
+```
+warning: [location] Error: location permission was not granted
+```
+
+That is the line that would have turned yesterday's hour of probing the
+browser, WebGL, MapLibre's worker and Viro's source into a glance at the
+console.
+
+It carries the reason a position failed, never a position, and it goes to a
+local console. AGENTS.md's guardrail is that the player's location never
+leaves the device, and nothing here sends anything anywhere.
+
+132 tests, tsc clean, and no `.catch(() => undefined)` left in the tree.

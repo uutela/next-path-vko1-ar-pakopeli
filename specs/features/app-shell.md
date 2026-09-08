@@ -110,6 +110,31 @@ still to find it.
 **When** `watch` is cancelled and the provider then resolves
 **Then** the callback is never called
 
+### AC13: A position that never arrives says why
+**Given** `createLocationSource(provider, report)` where the provider's `getCurrent` rejects with `new Error('location permission was not granted')`
+**When** `watch` is called
+**Then** `report` is called exactly once with that error, and the position callback is never called
+
+### AC14: A failing watch says why too
+**Given** the same, where `watch` rejects with `new Error('no position available')`
+**When** `watch` is called
+**Then** `report` has been called with that error
+
+The adapter used to end both promises with `.catch(() => undefined)`, which
+made a denied permission, a device with no fix and a timeout indistinguishable
+from "still looking" — to the player *and* to whoever was debugging. That
+silence is what turned a one-line problem into an hour of probing the browser,
+the WebGL context, MapLibre's worker and Viro's source.
+
+Two separate decisions live here and only one had been made. Not showing the
+player a location status is a scope decision, and it stands. Throwing the
+reason away was never decided at all; it was a reflex to avoid an unhandled
+rejection.
+
+`report` defaults to a local `console.warn`. It carries the reason a position
+failed, never a position — the guardrail in AGENTS.md is that the player's
+location never leaves the device, and this does not send anything anywhere.
+
 ## Files to Modify
 | File | Change |
 |---|---|
@@ -147,6 +172,8 @@ still to find it.
 | `createLocationSource` | happy path | provider with a current position, no changes | watched | that position once (AC10) |
 | `createLocationSource` | happy path | provider reports a change | watched | current then changed, in order (AC11) |
 | `createLocationSource` | edge case | cancelled before the current position resolves | provider resolves | callback never called (AC12) |
+| `createLocationSource` | error case | `getCurrent` rejects | watched | `report` called once with the error, no position (AC13) |
+| `createLocationSource` | error case | `watch` rejects | watched | `report` called with the error (AC14) |
 
 ## Spec Readiness checklist
 - [x] Every AC has a precise expected value — no "works correctly"
