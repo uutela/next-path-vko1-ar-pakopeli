@@ -43,6 +43,11 @@ export interface PositionProvider {
   watch(onChange: (coordinates: Coordinates) => void): Promise<() => void>;
 }
 
+/** Local only. Carries why a position failed, never a position. */
+const defaultReport = (reason: unknown) => {
+  console.warn('[location]', reason);
+};
+
 /**
  * Delivers the position we already have, then every change after it.
  *
@@ -51,7 +56,10 @@ export interface PositionProvider {
  * on a desk never triggered it and the game never left the map.
  * See specs/features/app-shell.md AC10.
  */
-export function createLocationSource(provider: PositionProvider): LocationSource {
+export function createLocationSource(
+  provider: PositionProvider,
+  report: (reason: unknown) => void = defaultReport,
+): LocationSource {
   return {
     watch(onChange) {
       let cancelled = false;
@@ -63,10 +71,11 @@ export function createLocationSource(provider: PositionProvider): LocationSource
         }
       };
 
-      // A position that never arrives is a permission that was refused or a
-      // device with no fix. Neither is an error here: the screen simply has
-      // nothing to show yet.
-      void provider.getCurrent().then(deliver).catch(() => undefined);
+      // A position that never arrives is a refused permission, a device with
+      // no fix, or a timeout. The screen shows nothing either way — that is a
+      // scope decision — but the reason is kept rather than discarded, because
+      // silence here once turned a one-line problem into an hour of probing.
+      void provider.getCurrent().then(deliver).catch(report);
 
       void provider
         .watch(deliver)
@@ -77,7 +86,7 @@ export function createLocationSource(provider: PositionProvider): LocationSource
             stopWatching = stop;
           }
         })
-        .catch(() => undefined);
+        .catch(report);
 
       return () => {
         cancelled = true;
