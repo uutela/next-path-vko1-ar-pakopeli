@@ -94,7 +94,7 @@ user has decided against showing location state in the UI, which is a
 legitimate scope decision; the swallowing itself is not the same decision and
 was never made deliberately.
 
-## Verdict
+## Round 1 verdict
 
 **CHANGES_REQUIRED**
 
@@ -113,3 +113,52 @@ was never made deliberately.
    showed the panel drawing only its background, one input strip and one key;
    every `ViroText` now has an explicit size, and nobody has looked since.
    Not blocking on the code, but step 7 is not closed until someone looks.
+
+
+---
+
+# Round 2
+
+Item 1 fixed through the tdd workflow: `points-store.md` gained AC11 to AC13,
+`isEscapePoint` is a pure guard covering shape *and* values, and
+`loadStoredPoints` filters with it. Both criteria were proved able to fail,
+and the crash path was re-run: two malformed entries dropped, one point kept,
+no throw.
+
+**The second pass found the same crash arriving by a different route.**
+`App.tsx` cast both JSON imports to `EscapePoint[]` with no check.
+`points.json` is committed and reviewed — but `points.local.json` is typed in
+by hand, which makes it the likeliest source of a malformed point in the whole
+system, not the least. A typed latitude of `"kuusikymmentä"` would have killed
+the app on the first location update exactly as a corrupt store did.
+
+Fixed the same way: `composeSeed` validates both files and lives in the domain
+rather than as two casts in the one file no criterion covers. AC14, three
+tests.
+
+```
+$ npm test                    130 passed (130)
+$ npx tsc --noEmit            exit 0
+$ node scripts/browser-smoke.mjs   14 checks, 0 errors
+$ grep 'as EscapePoint[]' src App.tsx   no matches
+```
+
+98 criteria, every one covered by its spec's testing strategy.
+
+## Round 2 verdict
+
+**APPROVED**
+
+Three findings remain recorded and none is a defect:
+
+1. **`createLocationSource` discards the reason a position never arrived.** Two
+   `.catch(() => undefined)` calls. The user has decided against showing
+   location state in the UI, which settles the product question; this is the
+   developer-visibility half, and it stays open in `INBOX.md`.
+2. **`Map.web.tsx` is executed only by `scripts/browser-smoke.mjs`.** Its
+   criteria are source-tree assertions. The Vitest count does not cover it,
+   and nobody should read it as if it did.
+3. **The native panel's sizing fix is unverified.** The device walkthrough
+   showed the panel drawing only its background, one input strip and one key;
+   every `ViroText` now has an explicit width and height, and nobody has
+   looked since. Step 7 is not closed until someone does.

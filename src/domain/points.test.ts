@@ -1,4 +1,4 @@
-import { isEscapePoint, mergePoints } from './points';
+import { composeSeed, isEscapePoint, mergePoints } from './points';
 import type { EscapePoint } from './types';
 
 const SEED_A: EscapePoint = {
@@ -86,5 +86,24 @@ describe('isEscapePoint', () => {
 
   it('AC11: a well-formed point is kept', () => {
     expect(isEscapePoint(SEED_A)).toBe(true);
+  });
+});
+
+describe('composeSeed', () => {
+  it('AC14: a hand-edited local file cannot crash the game', () => {
+    const local = [{ id: 'p1', coordinates: { latitude: 'kuusikymmentä' } }];
+
+    expect(composeSeed([SEED_A], local)).toEqual([SEED_A]);
+  });
+
+  it('AC14: a well-formed local point overrides the committed seed', () => {
+    const moved = { ...SEED_A, name: 'Lähellä', coordinates: { latitude: 60.2, longitude: 25 } };
+
+    expect(composeSeed([SEED_A], [moved])).toEqual([moved]);
+  });
+
+  it('AC14: anything that is not an array is ignored', () => {
+    expect(composeSeed([SEED_A], null)).toEqual([SEED_A]);
+    expect(composeSeed(null, null)).toEqual([]);
   });
 });

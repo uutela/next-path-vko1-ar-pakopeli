@@ -1499,3 +1499,40 @@ the discipline was not, and the difference is worth naming.
 AC14 had a genuine red, since `Map.tsx` had no `Camera` to configure.
 
 123 tests, tsc clean, every smoke check passing.
+
+---
+
+## Step 8 — review
+
+### 65
+> Run all tests and show the summary. Then run the `review` workflow from
+> @AGENTS.md on all changes so far […] End with APPROVED or CHANGES_REQUIRED
+> and a numbered list. If CHANGES_REQUIRED: fix the items one at a time, each
+> through the tdd workflow (red first), then run the review again.
+
+**Round 1: CHANGES_REQUIRED**, on one blocking item. The audit found a crash,
+not a smell. `loadStoredPoints` guarded unparseable JSON and non-arrays and
+stopped there, so a stored `[{"id":"p2","foo":1}]` survived `mergePoints`,
+reached `isWithinRadius` and threw `TypeError: Cannot destructure property
+'latitude' of 'undefined'` on the first location update — the app dying
+seconds after launch with no way back but clearing device storage. It had been
+sitting in `INBOX.md` as a robustness note.
+
+Fixed through tdd: AC11 to AC13, `isEscapePoint` covering shape *and* values,
+both proved able to fail.
+
+**Round 2 found the same crash by a different route**, which is the point of
+running the review again rather than declaring victory. `App.tsx` cast both
+JSON imports to `EscapePoint[]` with no check — and `points.local.json` is
+typed in by hand, making it the likeliest source of a malformed point in the
+system rather than the least. AC14 and `composeSeed` moved that composition
+into the domain, out of the one file no criterion covers.
+
+**Round 2: APPROVED.** 130 tests, tsc clean, fourteen browser checks, 98
+criteria all covered, and no unchecked array cast anywhere in the tree.
+
+Three findings stay recorded and none is a defect: the location adapter
+discards why a position never arrived (the UI half is a decision already
+made, the developer-visibility half is not), `Map.web.tsx` is executed only by
+the browser smoke test, and the native panel's sizing fix has not been looked
+at on the device since it was written.
