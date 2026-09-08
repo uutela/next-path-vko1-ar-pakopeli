@@ -28,7 +28,7 @@ throw away the part of this file the study circle is meant to read.
 | Evidence of order | below, with commit hashes and one honest exception |
 | Green tests | `specs/audit-report.md`, and the summary below |
 | Reflection | below |
-| INBOX | `INBOX.md` — nine entries, seven resolved |
+| INBOX | `INBOX.md` — nine entries, eight resolved, one open |
 
 ```
 $ npm test
