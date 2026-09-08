@@ -38,7 +38,13 @@ no storage argument. That cannot be tested against a fake without mocking the
 AsyncStorage module, which would have forced the package to be installed for
 the sake of the tests alone.
 
-`src/data/points.json` holds the seed. Solved state is never written by
+`src/data/points.json` holds the committed seed — a public square, chosen
+because the repository is public. `src/data/points.local.json` holds points
+that must not be committed, and is gitignored and created empty by
+`postinstall`; the root `App.tsx` merges it over the seed with the same
+`mergePoints` rule, so a matching id replaces and any other id adds. A point is
+a place someone stands, and AGENTS.md is explicit that the player's location
+never leaves the device. Solved state is never written by
 either function: it lives only in `GameState`, in memory.
 
 ## Acceptance Criteria

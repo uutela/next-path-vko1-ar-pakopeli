@@ -1364,3 +1364,36 @@ console errors: 0   page errors: 0
 a browser. `localhost` is exempt, so this works on the developer's machine and
 nowhere else until the build is hosted over HTTPS. That is a deployment
 decision the PRD does not yet cover.
+
+### 61
+> Aloitetaan ykkösestä ja sen jälkeen kakkonen. Voisiko toi meidän koordinaatti
+> olla jossain tiedostossa mikä ei mene gittiin tai tänne historiaan
+
+→ Yes, and AGENTS.md asks for it independently: "the player's location never
+leaves the device". A home address does not belong in a public repository, and
+the committed seed is a public square for the same reason.
+
+`src/data/points.local.json` is gitignored and created empty by `postinstall`,
+so a fresh clone still builds. The root `App.tsx` merges it over the committed
+seed using the same `mergePoints` rule the store already uses — a matching id
+replaces, any other id adds — so no new domain code and no new criterion were
+needed. Verified with a throwaway value that was never written to the file:
+seed alone gives `p1/Senaatintori`, seed plus a local file gives
+`local/Lisätty, p1/Korvattu`.
+
+The coordinate is filled in by the user and passes through neither this
+transcript nor the repository.
+
+**Task one, the blank web map, is half done.** `maplibre-gl`'s stylesheet is
+now imported and pinned by AC10 — the document holds 103 `maplibregl` rules
+where it held none, and the Liberty background and the marker render. But no
+vector tile is ever fetched, so the map still shows no streets. What has been
+ruled out by testing rather than argued: headless versus headed makes no
+difference, WebGL2 is present in both, no console error or failed request
+appears, the map element measures 1280x647, and the style, TileJSON and
+sprites all return 200 while the tile template
+`.../{z}/{x}/{y}.pbf` is never requested. Two candidates remain untested:
+MapLibre fetching tiles from a Web Worker the page listener never sees, and a
+disagreement between `react-map-gl` 8.1.3 and `maplibre-gl` 6.7.0 despite the
+permissive peer range. The smoke script asserts tiles are fetched and fails,
+which is the honest state rather than a green run over a blank map.
