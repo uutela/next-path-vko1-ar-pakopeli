@@ -169,15 +169,16 @@ Points here, not metres. AC15 measures the Viro panel in world space because
 that is what Viro lays out in; this one measures ordinary React Native views
 in points. Same intent, different unit.
 
-### AC20: The web camera screen draws the panel over a camera preview
-**Given** the `ArScreen` resolved for web, a camera adapter reporting `granted`, and `PUZZLE_STATE`
-**When** it is rendered
-**Then** exactly one camera preview is present, and the panel's puzzle text `5 + 2 = ?` is present with it
+### AC20: The web puzzle screen shows the panel and no camera
+**Given** the `ArScreen` resolved for web and `PUZZLE_STATE`
+**When** it is rendered, with the camera adapter reporting `denied`
+**Then** the panel's puzzle text `5 + 2 = ?` is present, no `video` element exists, and no node reads `Kamera tarvitaan tehtävän avaamiseen.`
 
-### AC21: Denied camera permission on web explains itself
-**Given** the `ArScreen` resolved for web and a camera adapter reporting `denied`
-**When** it is rendered
-**Then** exactly one node reads `Kamera tarvitaan tehtävän avaamiseen.`, and no keypad key is present
+The camera permission is deliberately the *denied* one here: web must not
+consult it at all. An earlier pair of criteria had web open a camera preview
+and explain a denied permission; both are gone, because the web build now uses
+no camera. A camera needs a permission prompt and a secure context, and asking
+a stranger for either before they can try a puzzle is the opposite of easy.
 
 ### AC22: The keypad is laid out as a telephone keypad
 **Given** either panel implementation rendered with `PUZZLE_STATE`
@@ -198,10 +199,10 @@ criterion can be checked without a layout engine.
 | `src/ui/PuzzlePanel.tsx` | New. Anchored panel: puzzle text, input display, keypad |
 | `src/ui/PuzzlePanel.test.tsx` | New. AC1–AC10 and AC12–AC15 against the rendered output |
 | `src/ui/ArScreen.test.tsx` | New. AC11 with a fake camera adapter |
-| `src/ui/ArScreen.web.tsx` | Replaces the stand-in: camera preview hosting the overlay panel |
+| `src/ui/ArScreen.web.tsx` | The puzzle panel on a plain background; no camera |
 | `src/ui/PuzzlePanel.web.tsx` | New. The same panel drawn as React Native views |
 | `src/ui/panelBehaviour.ts` | New. The panel suite AC2–AC14, run against both implementations |
-| `src/ui/ArScreen.web.test.tsx` | AC17, AC20 and AC21 |
+| `src/ui/ArScreen.web.test.tsx` | AC17 and AC20 |
 | `src/ui/PuzzlePanel.web.test.tsx` | New. AC18 and AC19 |
 | `src/adapters/audio.ts` | New. `play(asset)` behind an adapter so AC8 and AC9 are testable |
 | `scripts/generate-fanfare.mjs` | New. Synthesises the fanfare from a score in the source; no dependencies |
@@ -255,8 +256,7 @@ criterion can be checked without a layout engine.
 | `PuzzlePanel` (web) | happy path | the shared panel suite | run against the web panel | AC2–AC14 all pass (AC18) |
 | `PuzzlePanel` (web) | boundary | `PUZZLE_STATE` | each key's style read | every key `minWidth` and `minHeight` >= 48 (AC19) |
 | both panels | happy path | `PUZZLE_STATE` | keypad rows read | four rows of three, `1 2 3` / `4 5 6` / `7 8 9` / `C 0 OK` (AC22) |
-| `ArScreen` (web) | happy path | permission `granted`, `PUZZLE_STATE` | rendered | one camera preview, panel text `5 + 2 = ?` present (AC20) |
-| `ArScreen` (web) | error case | permission `denied` | rendered | one `Kamera tarvitaan tehtävän avaamiseen.`, no keys (AC21) |
+| `ArScreen` (web) | happy path | permission `denied`, `PUZZLE_STATE` | rendered | panel text present, no `video`, no camera notice (AC20) |
 | `PuzzlePanel` | happy path | `SOLVED` | `Aloita alusta` pressed | one `RESET` (AC12) |
 | `PuzzlePanel` | happy path | `PUZZLE_STATE` with `input: "12"` | key `C` pressed | one `CLEAR`, display empty (AC13) |
 | `PuzzlePanel` | edge case | `PUZZLE_STATE` with `input: ""` | key `C` pressed | one `CLEAR`, display still empty, no throw (AC14) |

@@ -54,17 +54,12 @@ describe('the web platform split', () => {
     }
   });
 
-  it('AC20: the web camera screen draws the panel over a camera preview', () => {
-    render(createElement(ArScreen, props('granted')));
+  it('AC20: the web puzzle screen shows the panel and no camera', () => {
+    // Denied on purpose: web must not consult the camera at all.
+    const { container } = render(createElement(ArScreen, props('denied')));
 
-    expect(screen.getAllByTestId('camera-preview')).toHaveLength(1);
     expect(screen.getByText('5 + 2 = ?')).toBeTruthy();
-  });
-
-  it('AC21: denied camera permission on web explains itself', () => {
-    render(createElement(ArScreen, props('denied')));
-
-    expect(screen.getAllByText('Kamera tarvitaan tehtävän avaamiseen.')).toHaveLength(1);
-    expect(screen.queryAllByTestId(/^key-(?!row-)/)).toHaveLength(0);
+    expect(container.querySelectorAll('video')).toHaveLength(0);
+    expect(screen.queryByText('Kamera tarvitaan tehtävän avaamiseen.')).toBeNull();
   });
 });
