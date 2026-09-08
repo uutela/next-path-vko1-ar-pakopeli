@@ -147,12 +147,41 @@ $ grep 'as EscapePoint[]' src App.tsx   no matches
 
 ## Round 2 verdict
 
+**CHANGES_REQUIRED** — one new item, found by the second pass rather than
+carried over from the first:
+
+5. **`App.tsx` cast both JSON imports to `EscapePoint[]` with no check.** Fixed
+   in this round through the tdd workflow: `composeSeed`, AC14, three tests.
+
+---
+
+# Round 3
+
+Nothing new. A clean pass over the whole tree:
+
+```
+$ npm test                              132 passed (132)
+$ npx tsc --noEmit                      exit 0
+$ node scripts/browser-smoke.mjs        14 checks, 0 errors
+100 criteria                            every one in its testing strategy
+Given/When/Then                         balanced in all seven specs
+as EscapePoint[] / catch(() => undefined)   no matches
+vague Then lines                        0
+```
+
+The count is 132 rather than 130 because the location adapter's error
+reporting landed between rounds — app-shell AC13 and AC14, a decision the user
+made after reading finding 1 rather than a review finding of its own. Code
+changed after a verdict, so the verdict was re-established rather than assumed.
+
+## Round 3 verdict
+
 **APPROVED**
 
-Three findings remain recorded and none is a defect:
+Two findings remain recorded and neither is a defect:
 
 1. ~~`createLocationSource` discards the reason a position never arrived.~~
-   **Fixed after the round 2 verdict**, on the user's decision. The adapter now
+   **Fixed between rounds 2 and 3**, on the user's decision. The adapter now
    takes a `report` callback defaulting to a local `console.warn`, pinned by
    app-shell AC13 and AC14. Opening the app without location permission prints
    `[location] Error: location permission was not granted` and nothing else —
